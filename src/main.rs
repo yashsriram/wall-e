@@ -1,3 +1,4 @@
+use gnuplot::{Caption, Color, Figure, LineWidth};
 use ndarray::prelude::*;
 use ndarray::stack;
 use ndarray_rand::rand_distr::{NormalError, StandardNormal};
@@ -89,7 +90,7 @@ fn cem(
     initial_std: f32,
     num_evalation_samples: usize,
     noise_factor: f32,
-) -> Result<(), NormalError> {
+) -> Result<(Array1<f32>, Array1<f32>), NormalError> {
     let mut th_std = Array::from_elem((th_mean.len(),), initial_std);
 
     let n_elite = (batch_size as f32 * elite_frac).round().floor() as usize;
@@ -136,11 +137,11 @@ fn cem(
             th_std.mean(),
         );
     }
-    Ok(())
+    Ok((th_mean, th_std))
 }
 
 fn main() {
-    cem(
+    let (th_mean, th_std) = cem(
         Array::from_elem((InHnOnReLuModel::legal_params_len(1),), 0.0),
         50,
         50,
@@ -148,5 +149,22 @@ fn main() {
         1.0,
         300,
         1.0,
-    );
+    )
+    .unwrap();
+
+    let mut fg = Figure::new();
+    fg.axes2d()
+        .lines(
+            (0..=314).map(|x| x as f32 / 50.0),
+            (0..=314).map(|x| (x as f32 / 50.0).sin()),
+            &[Caption("true"), LineWidth(1.0), Color("green")],
+        )
+        .lines(
+            (0..=314).map(|x| x as f32 / 50.0),
+            (0..=314).map(|x| x as f32 / 50.0).map(|x| {
+                InHnOnReLuModel::run(arr1(&[x]).slice(s![..]), th_mean.slice(s![..]))[[0]]
+            }),
+            &[Caption("pred"), LineWidth(1.0), Color("red")],
+        );
+    fg.show();
 }
