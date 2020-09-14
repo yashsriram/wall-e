@@ -1,0 +1,11 @@
+[package]
+name = "optimization_using_cem"
+version = "0.1.0"
+authors = ["Yashasvi Sriram Patkuri <yash.3997@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+ndarray = "0.13.1"
+gnuplot = "0.0.37"
+rand = "0.7.3"
+ndarray-rand = "0.11.0"
