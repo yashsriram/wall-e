@@ -4,106 +4,112 @@ use ndarray::stack;
 use ndarray_rand::rand_distr::{NormalError, StandardNormal};
 use ndarray_rand::RandomExt;
 use rand::Rng;
-use std::iter::FromIterator;
+use std::fmt;
 
-struct I1O1LinearModel;
+struct FCN {
+    layers: Vec<usize>,
+    params: Array1<f32>,
+}
 
-impl I1O1LinearModel {
-    fn run(input: ArrayView1<f32>, params: ArrayView1<f32>) -> Array1<f32> {
-        let matrix = params.slice(s![0..1]);
-        let bias = params.slice(s![1..2]);
-        matrix.dot(&input) + &bias
+impl fmt::Display for FCN {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Fully connected network, layers={:?}, num params={}",
+            self.layers,
+            self.params.len()
+        )
     }
 }
 
-struct InHnOnReLuModel;
-
-impl InHnOnReLuModel {
-    const HIDDEN_LEN: usize = 10;
-    const OUTPUT_LEN: usize = 1;
-
-    fn legal_params_len(input_len: usize) -> usize {
-        Self::HIDDEN_LEN * input_len
-            + Self::HIDDEN_LEN
-            + Self::OUTPUT_LEN * Self::HIDDEN_LEN
-            + Self::OUTPUT_LEN
+impl FCN {
+    fn new(layers: Vec<usize>) -> FCN {
+        assert!(
+            layers.len() >= 2,
+            "Trying to create a model with less than 2 layers."
+        );
+        let num_params = {
+            let mut num_params = 0;
+            for i in 1..layers.len() {
+                num_params += (layers[i - 1] + 1) * layers[i];
+            }
+            num_params
+        };
+        FCN {
+            layers: layers,
+            params: Array::from_elem((num_params,), 0.01),
+        }
     }
 
-    fn run(input: ArrayView1<f32>, params: ArrayView1<f32>) -> Array1<f32> {
-        let input_len = input.len();
+    /// Clones input but not params.
+    fn at_with(&self, input: &Array1<f32>, params: &ArrayView1<f32>) -> Array1<f32> {
+        assert_eq!(input.len(), self.layers[0], "Invalid input len for fcn");
         assert_eq!(
             params.len(),
-            Self::legal_params_len(input_len),
-            "Number of parameters are inconsistent with layer lengths"
+            self.params.len(),
+            "Invalid params len for fcn"
         );
+        let mut params_offset = 0;
+        let mut output = input.to_owned();
+        for i in 1..self.layers.len() {
+            let matrix = params
+                .slice(s![
+                    params_offset..(params_offset + self.layers[i - 1] * self.layers[i])
+                ])
+                .into_shape((self.layers[i], self.layers[i - 1]))
+                .unwrap();
+            params_offset += self.layers[i - 1] * self.layers[i];
+            let biases = params
+                .slice(s![params_offset..(params_offset + self.layers[i])])
+                .into_shape(self.layers[i])
+                .unwrap();
+            output = matrix.dot(&output) + biases;
+            output = output.mapv(|e| if e > 0.0 { e } else { e * 0.1 });
+            params_offset += self.layers[i];
+        }
+        output
+    }
 
-        // Layer 1 (input -> hidden)
-        let input = input.slice(s![..]).into_shape((input_len, 1)).unwrap();
-        let l1_end = Self::HIDDEN_LEN * input_len;
-        let matrix1 = params
-            .slice(s![0..l1_end])
-            .into_shape((Self::HIDDEN_LEN, input_len))
-            .unwrap();
-        let biases1 = params
-            .slice(s![l1_end..l1_end + Self::HIDDEN_LEN])
-            .into_shape((Self::HIDDEN_LEN, 1))
-            .unwrap();
-        let hidden_out = matrix1.dot(&input) + biases1;
-        let hidden_out = hidden_out.mapv(|e| if e > 0.0 { e } else { e * 0.1 });
-
-        // Layer 2 (hiden -> output)
-        let l2_start = l1_end + Self::HIDDEN_LEN;
-        let m2_end = l2_start + Self::OUTPUT_LEN * Self::HIDDEN_LEN;
-        let matrix2 = params
-            .slice(s![l2_start..m2_end])
-            .into_shape((Self::OUTPUT_LEN, Self::HIDDEN_LEN))
-            .unwrap();
-        let biases2 = params
-            .slice(s![m2_end..m2_end + Self::OUTPUT_LEN])
-            .into_shape((Self::OUTPUT_LEN, 1))
-            .unwrap();
-        let output = matrix2.dot(&hidden_out) + biases2;
-
-        Array::from_iter(output.iter().map(|&e| e))
+    fn at(&self, input: Array1<f32>) -> Array1<f32> {
+        self.at_with(&input, &self.params.slice(s![..]))
     }
 }
 
-fn reward(params: ArrayView1<f32>, num_samples: usize) -> f32 {
+fn reward(fcn: &FCN, params: &ArrayView1<f32>, num_samples: usize) -> f32 {
     let mut rng = rand::thread_rng();
     let max_x = 6.28;
     let cumulative_reward = (0..num_samples)
         .map(|_| {
             let x = rng.gen::<f32>() * max_x;
-            let y_true = x.sin();
-            let y_pred = InHnOnReLuModel::run(arr1(&[x]).slice(s![..]), params)[0];
-            -(y_true - y_pred).abs()
+            let y_true = x.exp();
+            let y_pred = fcn.at_with(&arr1(&[x]), &params.slice(s![..]))[0];
+            -(y_true - y_pred) * (y_true - y_pred)
         })
         .sum::<f32>();
     cumulative_reward / num_samples as f32
 }
 
 fn cem(
-    mut th_mean: Array1<f32>,
-    batch_size: usize,
+    fcn: &mut FCN,
     n_iter: usize,
+    batch_size: usize,
+    num_evalation_samples: usize,
     elite_frac: f32,
     initial_std: f32,
-    num_evalation_samples: usize,
     noise_factor: f32,
-) -> Result<(Array1<f32>, Array1<f32>), NormalError> {
-    let mut th_std = Array::from_elem((th_mean.len(),), initial_std);
-
+) -> Result<Array1<f32>, NormalError> {
     let n_elite = (batch_size as f32 * elite_frac).round().floor() as usize;
+    let mut th_std = Array::from_elem((fcn.params.len(),), initial_std);
     for iter in 0..n_iter {
         let randn_noise_for_batch: Array2<f32> =
-            Array::random((batch_size, th_mean.len()), StandardNormal);
+            Array::random((batch_size, fcn.params.len()), StandardNormal);
         let scaled_randn_noise_for_batch = randn_noise_for_batch * &th_std;
-        let th_means_for_batch = scaled_randn_noise_for_batch + &th_mean;
+        let th_means_for_batch = scaled_randn_noise_for_batch + &fcn.params;
         // println!("{:?}", th_means_for_batch);
         let (sorted_th_means, mean_reward) = {
             let mut reward_th_mean_tuples = th_means_for_batch
                 .axis_iter(Axis(0))
-                .map(|th_mean| (reward(th_mean, num_evalation_samples), th_mean))
+                .map(|th_mean| (reward(fcn, &th_mean, num_evalation_samples), th_mean))
                 .collect::<Vec<(f32, ArrayView1<f32>)>>();
             reward_th_mean_tuples.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
             reward_th_mean_tuples.reverse();
@@ -121,10 +127,10 @@ fn cem(
         // println!("{:?}", elite_ths);
         let elite_ths = stack(Axis(0), &elite_ths)
             .unwrap()
-            .into_shape((n_elite, th_mean.len()))
+            .into_shape((n_elite, fcn.params.len()))
             .unwrap();
         // println!("{:?}", elite_ths);
-        th_mean = elite_ths.mean_axis(Axis(0)).unwrap();
+        fcn.params = elite_ths.mean_axis(Axis(0)).unwrap();
         // println!("{:?}", th_mean);
         th_std = elite_ths.std_axis(Axis(0), 0.0);
         th_std += noise_factor / (iter + 1) as f32;
@@ -133,38 +139,31 @@ fn cem(
             "iter={} mean_reward={:?} reward_with_current_th={:?}, th_std_mean={:?}",
             iter + 1,
             mean_reward,
-            reward(th_mean.slice(s![..]), num_evalation_samples),
+            reward(fcn, &fcn.params.slice(s![..]), num_evalation_samples),
             th_std.mean(),
         );
     }
-    Ok((th_mean, th_std))
+    Ok(th_std)
 }
 
 fn main() {
-    let (th_mean, th_std) = cem(
-        Array::from_elem((InHnOnReLuModel::legal_params_len(1),), 0.0),
-        50,
-        50,
-        0.5,
-        1.0,
-        300,
-        1.0,
-    )
-    .unwrap();
+    let mut fcn = FCN::new(vec![1, 5, 5, 5, 5, 1]);
+    println!("{}", fcn);
+    let _th_std = cem(&mut fcn, 200, 50, 300, 0.5, 1.0, 1.0).unwrap();
 
     let mut fg = Figure::new();
     fg.axes2d()
         .lines(
             (0..=314).map(|x| x as f32 / 50.0),
-            (0..=314).map(|x| (x as f32 / 50.0).sin()),
+            (0..=314).map(|x| (x as f32 / 50.0).exp()),
             &[Caption("true"), LineWidth(1.0), Color("green")],
         )
         .lines(
             (0..=314).map(|x| x as f32 / 50.0),
-            (0..=314).map(|x| x as f32 / 50.0).map(|x| {
-                InHnOnReLuModel::run(arr1(&[x]).slice(s![..]), th_mean.slice(s![..]))[[0]]
-            }),
+            (0..=314)
+                .map(|x| x as f32 / 50.0)
+                .map(|x| fcn.at(arr1(&[x]))[[0]]),
             &[Caption("pred"), LineWidth(1.0), Color("red")],
         );
-    fg.show();
+    fg.save_to_png("fit.png", 800, 500);
 }
