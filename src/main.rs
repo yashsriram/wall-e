@@ -1,4 +1,3 @@
-use gnuplot::{Caption, Color, Figure, LineWidth};
 use ndarray::prelude::*;
 use ndarray::stack;
 use ndarray_rand::rand_distr::{NormalError, StandardNormal};
@@ -6,8 +5,14 @@ use ndarray_rand::RandomExt;
 use rand::Rng;
 use std::fmt;
 
+#[derive(Debug)]
+enum Activation {
+    Linear,
+    LeakyReLu(f32),
+}
+
 struct FCN {
-    layers: Vec<usize>,
+    layers: Vec<(usize, Activation)>,
     params: Array1<f32>,
 }
 
@@ -23,7 +28,7 @@ impl fmt::Display for FCN {
 }
 
 impl FCN {
-    fn new(layers: Vec<usize>) -> FCN {
+    fn new(layers: Vec<(usize, Activation)>) -> FCN {
         assert!(
             layers.len() >= 2,
             "Trying to create a model with less than 2 layers."
@@ -31,7 +36,7 @@ impl FCN {
         let num_params = {
             let mut num_params = 0;
             for i in 1..layers.len() {
-                num_params += (layers[i - 1] + 1) * layers[i];
+                num_params += (layers[i - 1].0 + 1) * layers[i].0;
             }
             num_params
         };
@@ -43,7 +48,7 @@ impl FCN {
 
     /// Clones input but not params.
     fn at_with(&self, input: &Array1<f32>, params: &ArrayView1<f32>) -> Array1<f32> {
-        assert_eq!(input.len(), self.layers[0], "Invalid input len for fcn");
+        assert_eq!(input.len(), self.layers[0].0, "Invalid input len for fcn");
         assert_eq!(
             params.len(),
             self.params.len(),
@@ -51,21 +56,31 @@ impl FCN {
         );
         let mut params_offset = 0;
         let mut output = input.to_owned();
+        output = match &self.layers[0].1 {
+            Activation::Linear => output,
+            Activation::LeakyReLu(leak) => output.mapv(|e| if e > 0.0 { e } else { e * leak }),
+        };
         for i in 1..self.layers.len() {
+            let prev_layer_dof = self.layers[i - 1].0;
+            let curr_layer_dof = self.layers[i].0;
+            let curr_layer_activation = &self.layers[i].1;
             let matrix = params
                 .slice(s![
-                    params_offset..(params_offset + self.layers[i - 1] * self.layers[i])
+                    params_offset..(params_offset + prev_layer_dof * curr_layer_dof)
                 ])
-                .into_shape((self.layers[i], self.layers[i - 1]))
+                .into_shape((curr_layer_dof, prev_layer_dof))
                 .unwrap();
-            params_offset += self.layers[i - 1] * self.layers[i];
-            let biases = params
-                .slice(s![params_offset..(params_offset + self.layers[i])])
-                .into_shape(self.layers[i])
+            params_offset += prev_layer_dof * curr_layer_dof;
+            let bias = params
+                .slice(s![params_offset..(params_offset + curr_layer_dof)])
+                .into_shape(curr_layer_dof)
                 .unwrap();
-            output = matrix.dot(&output) + biases;
-            output = output.mapv(|e| if e > 0.0 { e } else { e * 0.1 });
-            params_offset += self.layers[i];
+            output = matrix.dot(&output) + bias;
+            output = match curr_layer_activation {
+                Activation::Linear => output,
+                Activation::LeakyReLu(leak) => output.mapv(|e| if e > 0.0 { e } else { e * leak }),
+            };
+            params_offset += curr_layer_dof;
         }
         output
     }
@@ -147,10 +162,18 @@ fn cem(
 }
 
 fn main() {
-    let mut fcn = FCN::new(vec![1, 5, 5, 5, 5, 1]);
+    let mut fcn = FCN::new(vec![
+        (1, Activation::Linear),
+        (5, Activation::LeakyReLu(0.1)),
+        (5, Activation::LeakyReLu(0.1)),
+        (5, Activation::LeakyReLu(0.1)),
+        (5, Activation::LeakyReLu(0.1)),
+        (1, Activation::Linear),
+    ]);
     println!("{}", fcn);
     let _th_std = cem(&mut fcn, 200, 50, 300, 0.5, 1.0, 1.0).unwrap();
 
+    use gnuplot::*;
     let mut fg = Figure::new();
     fg.axes2d()
         .lines(
@@ -164,6 +187,19 @@ fn main() {
                 .map(|x| x as f32 / 50.0)
                 .map(|x| fcn.at(arr1(&[x]))[[0]]),
             &[Caption("pred"), LineWidth(1.0), Color("red")],
+        )
+        .set_legend(
+            Graph(0.5),
+            Graph(0.9),
+            &[Placement(AlignCenter, AlignTop)],
+            &[TextAlign(AlignRight)],
+        )
+        .set_grid_options(true, &[LineStyle(SmallDot), Color("black")])
+        .set_x_grid(true)
+        .set_y_grid(true)
+        .set_title(
+            &format!("reward={}", reward(&fcn, &fcn.params.slice(s![..]), 300)),
+            &[],
         );
-    fg.save_to_png("fit.png", 800, 500);
+    fg.save_to_png(format!("{}.png", chrono::offset::Local::now()), 800, 500);
 }
