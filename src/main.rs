@@ -9,6 +9,7 @@ use std::fmt;
 enum Activation {
     Linear,
     LeakyReLu(f32),
+    Sigmoid,
 }
 
 struct FCN {
@@ -20,7 +21,7 @@ impl fmt::Display for FCN {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Fully connected network, layers={:?}, num params={}",
+            "fcn, layers={:?}, num params={}",
             self.layers,
             self.params.len()
         )
@@ -59,6 +60,7 @@ impl FCN {
         output = match &self.layers[0].1 {
             Activation::Linear => output,
             Activation::LeakyReLu(leak) => output.mapv(|e| if e > 0.0 { e } else { e * leak }),
+            Activation::Sigmoid => output.mapv(|e| 1.0 / (1.0 + (-e).exp())),
         };
         for i in 1..self.layers.len() {
             let prev_layer_dof = self.layers[i - 1].0;
@@ -79,6 +81,7 @@ impl FCN {
             output = match curr_layer_activation {
                 Activation::Linear => output,
                 Activation::LeakyReLu(leak) => output.mapv(|e| if e > 0.0 { e } else { e * leak }),
+                Activation::Sigmoid => output.mapv(|e| 1.0 / (1.0 + (-e).exp())),
             };
             params_offset += curr_layer_dof;
         }
@@ -104,61 +107,78 @@ fn reward(fcn: &FCN, params: &ArrayView1<f32>, num_samples: usize) -> f32 {
     cumulative_reward / num_samples as f32
 }
 
-fn cem(
-    fcn: &mut FCN,
+#[derive(Debug)]
+struct CEO {
     n_iter: usize,
     batch_size: usize,
     num_evalation_samples: usize,
     elite_frac: f32,
     initial_std: f32,
     noise_factor: f32,
-) -> Result<Array1<f32>, NormalError> {
-    let n_elite = (batch_size as f32 * elite_frac).round().floor() as usize;
-    let mut th_std = Array::from_elem((fcn.params.len(),), initial_std);
-    for iter in 0..n_iter {
-        let randn_noise_for_batch: Array2<f32> =
-            Array::random((batch_size, fcn.params.len()), StandardNormal);
-        let scaled_randn_noise_for_batch = randn_noise_for_batch * &th_std;
-        let th_means_for_batch = scaled_randn_noise_for_batch + &fcn.params;
-        // println!("{:?}", th_means_for_batch);
-        let (sorted_th_means, mean_reward) = {
-            let mut reward_th_mean_tuples = th_means_for_batch
-                .axis_iter(Axis(0))
-                .map(|th_mean| (reward(fcn, &th_mean, num_evalation_samples), th_mean))
-                .collect::<Vec<(f32, ArrayView1<f32>)>>();
-            reward_th_mean_tuples.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-            reward_th_mean_tuples.reverse();
-            let (rewards, sorted_th_means): (Vec<_>, Vec<_>) =
-                reward_th_mean_tuples.into_iter().unzip();
-            (
-                sorted_th_means,
-                rewards.iter().sum::<f32>() / rewards.len() as f32,
-            )
-        };
-        let elite_ths = sorted_th_means
-            .into_iter()
-            .take(n_elite)
-            .collect::<Vec<ArrayView1<f32>>>();
-        // println!("{:?}", elite_ths);
-        let elite_ths = stack(Axis(0), &elite_ths)
-            .unwrap()
-            .into_shape((n_elite, fcn.params.len()))
-            .unwrap();
-        // println!("{:?}", elite_ths);
-        fcn.params = elite_ths.mean_axis(Axis(0)).unwrap();
-        // println!("{:?}", th_mean);
-        th_std = elite_ths.std_axis(Axis(0), 0.0);
-        th_std += noise_factor / (iter + 1) as f32;
-        // println!("{:?}", th_std);
-        println!(
-            "iter={} mean_reward={:?} reward_with_current_th={:?}, th_std_mean={:?}",
-            iter + 1,
-            mean_reward,
-            reward(fcn, &fcn.params.slice(s![..]), num_evalation_samples),
-            th_std.mean(),
-        );
+}
+
+impl Default for CEO {
+    fn default() -> CEO {
+        CEO {
+            n_iter: 300,
+            batch_size: 50,
+            num_evalation_samples: 300,
+            elite_frac: 0.25,
+            initial_std: 2.0,
+            noise_factor: 2.0,
+        }
     }
-    Ok(th_std)
+}
+
+impl CEO {
+    fn optimize(&self, fcn: &mut FCN) -> Result<Array1<f32>, NormalError> {
+        let n_elite = (self.batch_size as f32 * self.elite_frac).round().floor() as usize;
+        let mut th_std = Array::from_elem((fcn.params.len(),), self.initial_std);
+        for iter in 0..self.n_iter {
+            let randn_noise_for_batch: Array2<f32> =
+                Array::random((self.batch_size, fcn.params.len()), StandardNormal);
+            let scaled_randn_noise_for_batch = randn_noise_for_batch * &th_std;
+            let th_means_for_batch = scaled_randn_noise_for_batch + &fcn.params;
+            // println!("{:?}", th_means_for_batch);
+            let (sorted_th_means, mean_reward) = {
+                let mut reward_th_mean_tuples = th_means_for_batch
+                    .axis_iter(Axis(0))
+                    .map(|th_mean| (reward(fcn, &th_mean, self.num_evalation_samples), th_mean))
+                    .collect::<Vec<(f32, ArrayView1<f32>)>>();
+                reward_th_mean_tuples.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+                reward_th_mean_tuples.reverse();
+                let (rewards, sorted_th_means): (Vec<_>, Vec<_>) =
+                    reward_th_mean_tuples.into_iter().unzip();
+                (
+                    sorted_th_means,
+                    rewards.iter().sum::<f32>() / rewards.len() as f32,
+                )
+            };
+            let elite_ths = sorted_th_means
+                .into_iter()
+                .take(n_elite)
+                .collect::<Vec<ArrayView1<f32>>>();
+            // println!("{:?}", elite_ths);
+            let elite_ths = stack(Axis(0), &elite_ths)
+                .unwrap()
+                .into_shape((n_elite, fcn.params.len()))
+                .unwrap();
+            // println!("{:?}", elite_ths);
+            fcn.params = elite_ths.mean_axis(Axis(0)).unwrap();
+            // println!("{:?}", th_mean);
+            th_std = elite_ths.std_axis(Axis(0), 0.0);
+            th_std += self.noise_factor / (iter + 1) as f32;
+            // println!("{:?}", th_std);
+            println!(
+                "iter={} mean_reward={:?} reward_with_current_th={:?}, th_std_mean={:?}",
+                iter + 1,
+                mean_reward,
+                reward(fcn, &fcn.params.slice(s![..]), self.num_evalation_samples),
+                th_std.mean(),
+            );
+        }
+        Ok(th_std)
+    }
 }
 
 fn main() {
@@ -171,7 +191,8 @@ fn main() {
         (1, Activation::Linear),
     ]);
     println!("{}", fcn);
-    let _th_std = cem(&mut fcn, 200, 50, 300, 0.5, 1.0, 1.0).unwrap();
+    let ceo = CEO::default();
+    let _th_std = ceo.optimize(&mut fcn).unwrap();
 
     use gnuplot::*;
     let mut fg = Figure::new();
@@ -198,7 +219,12 @@ fn main() {
         .set_x_grid(true)
         .set_y_grid(true)
         .set_title(
-            &format!("reward={}", reward(&fcn, &fcn.params.slice(s![..]), 300)),
+            &format!(
+                "reward={}\nmodel={}\nceo={:?}",
+                reward(&fcn, &fcn.params.slice(s![..]), ceo.num_evalation_samples),
+                fcn,
+                ceo
+            ),
             &[],
         );
     fg.save_to_png(format!("{}.png", chrono::offset::Local::now()), 800, 500);
