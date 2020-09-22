@@ -7,6 +7,7 @@
 - [ ] Regularization.
 - [ ] Maybe move generation logic inside model? Removes into shapes a lot that way.
 - [ ] Parallelize.
+- [ ] Use 8 core machine for training.
 
 - [ ] Input design.
 - [ ] Output design.
