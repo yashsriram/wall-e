@@ -139,7 +139,7 @@ impl Default for CEO {
 impl CEO {
     fn optimize(&self, fcn: &mut FCN) -> Result<Array1<f32>, NormalError> {
         let n_elite = (self.batch_size as f32 * self.elite_frac).round().floor() as usize;
-        let mut th_std = Array::from_elem((fcn.params.len(),), self.initial_std);
+        let mut noise_std = Array::from_elem((fcn.params.len(),), self.initial_std);
         for iter in 0..self.n_iter {
             let (sorted_th_means, mean_reward) = {
                 let mut reward_th_mean_tuples = (0..self.batch_size)
@@ -147,9 +147,12 @@ impl CEO {
                     .map(|_| {
                         let randn_noise: Array1<f32> =
                             Array::random(fcn.params.len(), StandardNormal);
-                        let scaled_randn_noise = randn_noise * &th_std;
-                        let th_mean = scaled_randn_noise + &fcn.params;
-                        (reward(fcn, &th_mean, self.num_evalation_samples), th_mean)
+                        let scaled_randn_noise = randn_noise * &noise_std;
+                        let perturbed_params = scaled_randn_noise + &fcn.params;
+                        (
+                            reward(fcn, &perturbed_params, self.num_evalation_samples),
+                            perturbed_params,
+                        )
                     })
                     .collect::<Vec<(f32, Array1<f32>)>>();
                 reward_th_mean_tuples.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
@@ -171,17 +174,17 @@ impl CEO {
                 .into_shape((n_elite, fcn.params.len()))
                 .unwrap();
             fcn.params = elite_ths.mean_axis(Axis(0)).unwrap();
-            th_std = elite_ths.std_axis(Axis(0), 0.0);
-            th_std += self.noise_factor / (iter + 1) as f32;
+            noise_std = elite_ths.std_axis(Axis(0), 0.0);
+            noise_std += self.noise_factor / (iter + 1) as f32;
             println!(
                 "iter={} mean_reward={:?} reward_with_current_th={:?}, th_std_mean={:?}",
                 iter + 1,
                 mean_reward,
                 reward(fcn, &fcn.params, self.num_evalation_samples),
-                th_std.mean(),
+                noise_std.mean(),
             );
         }
-        Ok(th_std)
+        Ok(noise_std)
     }
 }
 
