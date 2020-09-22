@@ -204,9 +204,7 @@ fn main() {
         )
         .lines(
             (0..=314).map(|x| x as f32 / 50.0),
-            (0..=314)
-                .map(|x| x as f32 / 50.0)
-                .map(|x| fcn.at(arr1(&[x]))[[0]]),
+            (0..=314).map(|x| fcn.at(arr1(&[x as f32 / 50.0]))[[0]]),
             &[Caption("pred"), LineWidth(1.0), Color("red")],
         )
         .set_legend(
