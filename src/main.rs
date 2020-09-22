@@ -1,6 +1,6 @@
 use ndarray::prelude::*;
 use ndarray::stack;
-use ndarray_rand::rand_distr::{NormalError, StandardNormal};
+use ndarray_rand::rand_distr::{NormalError, StandardNormal, Uniform};
 use ndarray_rand::RandomExt;
 use rand::Rng;
 use rayon::prelude::*;
@@ -46,6 +46,7 @@ impl FCN {
         FCN {
             layers: layers,
             params: Array::from_elem((num_params,), 0.01),
+            // Array::random(num_params, Uniform::new(0.0, 1.0)),
         }
     }
 
