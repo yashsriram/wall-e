@@ -1,7 +1,9 @@
 use ndarray::prelude::*;
+use serde::ser::{Serialize, SerializeStruct, Serializer};
+use serde::{Deserialize as DeserializeDerive, Serialize as SerializeDerive};
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, SerializeDerive, DeserializeDerive)]
 pub enum Activation {
     Linear,
     LeakyReLu(f32),
@@ -11,6 +13,18 @@ pub enum Activation {
 pub struct FCN {
     layers: Vec<(usize, Activation)>,
     params: Array1<f32>,
+}
+
+impl Serialize for FCN {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut s = serializer.serialize_struct("FCN", 2)?;
+        s.serialize_field("layers", &self.layers)?;
+        s.serialize_field("params", &self.params.to_vec())?;
+        s.end()
+    }
 }
 
 impl fmt::Display for FCN {

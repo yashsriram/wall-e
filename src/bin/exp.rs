@@ -44,13 +44,22 @@ fn main() {
         .set_y_grid(true)
         .set_title(
             &format!(
-                "reward={}\nmodel={}\nceo={:?}",
+                "reward={}\nmodel={}\nceo={:?}\nreward={:?}",
                 ExpReward::reward(&fcn, &fcn.params(), ceo.num_evalation_samples),
                 fcn,
-                ceo
+                ceo,
+                ExpReward
             ),
             &[],
         );
     let now = chrono::offset::Local::now();
-    fg.save_to_png(format!("{},{}.png", now.date(), now.time()), 800, 500);
+    fg.save_to_png(format!("exp:{},{}.png", now.date(), now.time()), 800, 500)
+        .unwrap();
+
+    use std::fs::File;
+    serde_json::to_writer(
+        &File::create(format!("exp:{},{}.json", now.date(), now.time())).unwrap(),
+        &fcn,
+    )
+    .unwrap();
 }
