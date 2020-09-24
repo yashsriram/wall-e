@@ -1,4 +1,4 @@
-# wall-e
+# wall\_e
 
 ## description
 - A simple manually controlled differential drive robot.
