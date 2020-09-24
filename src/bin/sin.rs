@@ -1,9 +1,9 @@
 use ndarray::prelude::*;
 
-extern crate genopt;
-use genopt::ceo::CEO;
-use genopt::fcn::*;
-use genopt::rewards::SinReward;
+extern crate wall_e;
+use wall_e::ceo::CEO;
+use wall_e::fcn::*;
+use wall_e::rewards::SinReward;
 
 fn main() {
     let mut fcn = FCN::new(vec![
@@ -43,13 +43,22 @@ fn main() {
         .set_y_grid(true)
         .set_title(
             &format!(
-                "reward={}\nmodel={}\nceo={:?}",
+                "reward={}\nmodel={}\nceo={:?}\nreward={:?}",
                 SinReward::reward(&fcn, &fcn.params(), ceo.num_evalation_samples),
                 fcn,
-                ceo
+                ceo,
+                SinReward
             ),
             &[],
         );
     let now = chrono::offset::Local::now();
-    fg.save_to_png(format!("{},{}.png", now.date(), now.time()), 800, 500);
+    fg.save_to_png(format!("sin:{},{}.png", now.date(), now.time()), 800, 500)
+        .unwrap();
+
+    use std::fs::File;
+    serde_json::to_writer(
+        &File::create(format!("sin:{},{}.json", now.date(), now.time())).unwrap(),
+        &fcn,
+    )
+    .unwrap();
 }

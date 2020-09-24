@@ -1,9 +1,9 @@
 use ndarray::prelude::*;
 
-extern crate genopt;
-use genopt::ceo::CEO;
-use genopt::fcn::*;
-use genopt::rewards::ExpReward;
+extern crate wall_e;
+use wall_e::ceo::CEO;
+use wall_e::fcn::*;
+use wall_e::rewards::ExpReward;
 
 fn main() {
     let mut fcn = FCN::new(vec![
