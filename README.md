@@ -16,17 +16,26 @@
     - [x] Per layer activations.
     - [x] Random param initialization.
     - [x] Make ceo() a struct.
-    - [x] Parallelize.
     - [x] Seperate bin crate for each network.
-    - [ ] Maybe move generation logic inside model? Removes into shapes a lot that way.
-    - [ ] Use 8 core machine for training.
-- Controller design.
-    - [ ] Input design.
-    - [ ] Param init design.
-    - [ ] Output design.
-    - [ ] Hidden layer design.
-    - [ ] Other loss functions.
+    - Speedup
+        - [x] Parallelize.
+        - [ ] Maybe move generation logic inside model? Removes into shapes a lot that way.
+        - [ ] Use 8 core machine for training.
+    - [x] sin().
+    - [x] exp().
+    - [ ] median().
     - [ ] Regularization.
+- Controller design.
+    - Model.
+        - [ ] Input design.
+        - [ ] Param init design.
+        - [ ] Output design.
+        - [ ] Hidden layer design.
+    - Loss function.
+        - [ ] Different loss functions.
+        - [ ] Step level optimization vs Trajectory level optimization.
+    - Optimizor.
+        - [x] CEO.
 - [ ] Report.
 
 ## code
