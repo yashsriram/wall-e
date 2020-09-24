@@ -13,18 +13,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
-name = "cem"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "gnuplot",
- "ndarray",
- "ndarray-rand",
- "rand",
- "rayon",
-]
-
-[[package]]
 name = "cfg-if"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -93,6 +81,18 @@ name = "either"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
+
+[[package]]
+name = "genopt"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "gnuplot",
+ "ndarray",
+ "ndarray-rand",
+ "rand",
+ "rayon",
+]
 
 [[package]]
 name = "getrandom"
