@@ -3,7 +3,7 @@ use ndarray::prelude::*;
 extern crate genopt;
 use genopt::ceo::CEO;
 use genopt::fcn::*;
-use genopt::rewards::sin_reward;
+use genopt::rewards::SinReward;
 
 fn main() {
     let mut fcn = FCN::new(vec![
@@ -16,7 +16,8 @@ fn main() {
     println!("{}", fcn);
     let ceo = CEO::default();
     println!("{:?}", ceo);
-    let _th_std = ceo.optimize(&mut fcn, &sin_reward).unwrap();
+    println!("{:?}", SinReward);
+    let _th_std = ceo.optimize(&mut fcn, &SinReward::reward).unwrap();
 
     use gnuplot::*;
     let mut fg = Figure::new();
@@ -43,7 +44,7 @@ fn main() {
         .set_title(
             &format!(
                 "reward={}\nmodel={}\nceo={:?}",
-                sin_reward(&fcn, &fcn.params(), ceo.num_evalation_samples),
+                SinReward::reward(&fcn, &fcn.params(), ceo.num_evalation_samples),
                 fcn,
                 ceo
             ),

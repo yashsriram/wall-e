@@ -8,7 +8,7 @@
 - [x] Random param initialization.
 - [x] Make ceo() a struct.
 - [x] Parallelize.
-- [ ] Seperate bin crate for each network.
+- [x] Seperate bin crate for each network.
 - [ ] Maybe move generation logic inside model? Removes into shapes a lot that way.
 - [ ] Use 8 core machine for training.
 
