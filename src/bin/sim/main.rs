@@ -18,16 +18,12 @@ impl event::EventHandler for App {
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
+        let (v, w) = self.agent.control();
         graphics::clear(ctx, [0.0, 0.0, 0.0, 1.0].into());
         self.agent.draw(ctx)?;
         graphics::set_window_title(
             ctx,
-            &format!(
-                "fps={:.2}, v={:.2}, w={:.2}",
-                timer::fps(ctx),
-                self.agent.v(),
-                self.agent.w()
-            ),
+            &format!("fps={:.2}, v={:.2}, w={:.2}", timer::fps(ctx), v, w),
         );
         graphics::present(ctx)
     }

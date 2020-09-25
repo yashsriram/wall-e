@@ -10,6 +10,19 @@ pub struct DiffDriveAgent {
     w: f32,
 }
 
+impl Default for DiffDriveAgent {
+    fn default() -> DiffDriveAgent {
+        DiffDriveAgent {
+            x: 325.0,
+            y: 325.0,
+            or_in_rad: 0.0,
+            radius: 20.0,
+            v: 0.0,
+            w: 0.0,
+        }
+    }
+}
+
 impl DiffDriveAgent {
     pub fn update(&mut self, dt: f32) -> ggez::GameResult {
         self.x += self.v * self.or_in_rad.cos() * dt;
@@ -44,37 +57,29 @@ impl DiffDriveAgent {
         graphics::draw(ctx, &line, (Point2::new(0.0, 0.0),))
     }
 
-    pub fn v(&self) -> f32 {
-        self.v
+    pub fn control(&self) -> (f32, f32) {
+        (self.v, self.w)
     }
 
-    pub fn increment_v(&mut self, dv: f32) {
-        self.v += dv;
-    }
-
-    pub fn w(&self) -> f32 {
-        self.w
-    }
-
-    pub fn increment_w(&mut self, dw: f32) {
-        self.w += dw;
+    pub fn state(&self) -> (f32, f32, f32) {
+        (self.x, self.y, self.or_in_rad)
     }
 
     pub fn stop(&mut self) {
         self.v = 0.0;
         self.w = 0.0;
     }
-}
 
-impl Default for DiffDriveAgent {
-    fn default() -> DiffDriveAgent {
-        DiffDriveAgent {
-            x: 325.0,
-            y: 325.0,
-            or_in_rad: 0.0,
-            radius: 20.0,
-            v: 0.0,
-            w: 0.0,
-        }
+    pub fn increment_v(&mut self, dv: f32) {
+        self.v += dv;
+    }
+
+    pub fn increment_w(&mut self, dw: f32) {
+        self.w += dw;
+    }
+
+    pub fn set_control(&mut self, v: f32, w: f32) {
+        self.v = v;
+        self.w = w;
     }
 }
