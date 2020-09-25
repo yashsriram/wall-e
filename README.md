@@ -24,10 +24,9 @@
     - [x] sin().
     - [x] exp().
     - [ ] median().
-    - [ ] Regularization.
 - Controller design.
     - Model.
-        - [ ] Input design.
+        - [ ] Input design & normalization.
         - [ ] Param init design.
         - [ ] Output design.
         - [ ] Hidden layer design.
