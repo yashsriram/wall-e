@@ -55,6 +55,8 @@ pub struct DiffDriveModel {
     v: f32,
     w: f32,
     trail: Trail,
+    v_bound: f32,
+    w_bound: f32,
 }
 
 impl DiffDriveModel {
@@ -63,10 +65,12 @@ impl DiffDriveModel {
         y: f32,
         or_in_rad: f32,
         radius: f32,
-        v: f32,
-        w: f32,
         trail_limit: usize,
+        v_bound: f32,
+        w_bound: f32,
     ) -> DiffDriveModel {
+        assert!(v_bound > 0.0);
+        assert!(w_bound > 0.0);
         let mut trail = Trail::new(trail_limit);
         trail.add(x, y);
         DiffDriveModel {
@@ -74,9 +78,11 @@ impl DiffDriveModel {
             y: y,
             or_in_rad: or_in_rad,
             radius: radius,
-            v: v,
-            w: w,
+            v: 0.0,
+            w: 0.0,
             trail: trail,
+            v_bound: v_bound,
+            w_bound: w_bound,
         }
     }
 
@@ -132,15 +138,23 @@ impl DiffDriveModel {
     }
 
     pub fn increment_v(&mut self, dv: f32) {
-        self.v += dv;
+        if (self.v + dv).abs() < self.v_bound {
+            self.v += dv;
+        }
     }
 
     pub fn increment_w(&mut self, dw: f32) {
-        self.w += dw;
+        if (self.w + dw).abs() < self.w_bound {
+            self.w += dw;
+        }
     }
 
     pub fn set_control(&mut self, v: f32, w: f32) {
-        self.v = v;
-        self.w = w;
+        if self.v.abs() < self.v {
+            self.v = v;
+        }
+        if self.w.abs() < self.w {
+            self.w = w;
+        }
     }
 }
