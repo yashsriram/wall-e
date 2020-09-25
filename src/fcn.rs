@@ -1,30 +1,18 @@
 use ndarray::prelude::*;
-use serde::ser::{Serialize, SerializeStruct, Serializer};
-use serde::{Deserialize as DeserializeDerive, Serialize as SerializeDerive};
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
-#[derive(Debug, SerializeDerive, DeserializeDerive)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Activation {
     Linear,
     LeakyReLu(f32),
     Sigmoid,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FCN {
     layers: Vec<(usize, Activation)>,
     params: Array1<f32>,
-}
-
-impl Serialize for FCN {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut s = serializer.serialize_struct("FCN", 2)?;
-        s.serialize_field("layers", &self.layers)?;
-        s.serialize_field("params", &self.params.to_vec())?;
-        s.end()
-    }
 }
 
 impl fmt::Display for FCN {
@@ -39,14 +27,6 @@ impl fmt::Display for FCN {
 }
 
 impl FCN {
-    pub fn params(&self) -> &Array1<f32> {
-        &self.params
-    }
-
-    pub fn set_params(&mut self, new_params: Array1<f32>) {
-        self.params = new_params;
-    }
-
     pub fn new(layers: Vec<(usize, Activation)>) -> FCN {
         assert!(
             layers.len() >= 2,
@@ -64,6 +44,14 @@ impl FCN {
             params: Array::from_elem((num_params,), 0.01),
             // Array::random(num_params, Uniform::new(0.0, 1.0)),
         }
+    }
+
+    pub fn params(&self) -> &Array1<f32> {
+        &self.params
+    }
+
+    pub fn set_params(&mut self, new_params: Array1<f32>) {
+        self.params = new_params;
     }
 
     /// Clones input but not params.

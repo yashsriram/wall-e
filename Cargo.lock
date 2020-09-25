@@ -1232,6 +1232,7 @@ dependencies = [
  "num-integer",
  "num-traits 0.2.12",
  "rawpointer",
+ "serde",
 ]
 
 [[package]]
