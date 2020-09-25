@@ -1,12 +1,15 @@
 use ggez::input::keyboard::{KeyCode, KeyMods};
 use ggez::*;
 
-mod diff_drive_agent;
-use diff_drive_agent::DiffDriveAgent;
+mod diff_drive_model;
+use diff_drive_model::DiffDriveModel;
 
-#[derive(Default)]
+mod goal;
+use goal::Goal;
+
 struct App {
-    agent: DiffDriveAgent,
+    agent: DiffDriveModel,
+    goal: Goal,
 }
 
 impl event::EventHandler for App {
@@ -18,9 +21,12 @@ impl event::EventHandler for App {
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
-        let (v, w) = self.agent.control();
         graphics::clear(ctx, [0.0, 0.0, 0.0, 1.0].into());
+
         self.agent.draw(ctx)?;
+        self.goal.draw(ctx)?;
+
+        let (v, w) = self.agent.control();
         graphics::set_window_title(
             ctx,
             &format!("fps={:.2}, v={:.2}, w={:.2}", timer::fps(ctx), v, w),
@@ -48,7 +54,10 @@ impl event::EventHandler for App {
 }
 
 pub fn main() -> ggez::GameResult {
-    let ref mut app = App::default();
+    let ref mut app = App {
+        agent: DiffDriveModel::new(325.0, 325.0, 0.0, 15.0, 0.0, 0.0, 500),
+        goal: Goal::new(600.0, 325.0, 5.0),
+    };
     let mut conf = conf::Conf::new();
     conf.window_mode.width = 650.0;
     conf.window_mode.height = 650.0;
