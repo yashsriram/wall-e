@@ -80,7 +80,7 @@ pub fn main() -> ggez::GameResult {
     let fcn: FCN = serde_json::from_reader(reader).unwrap();
 
     let ref mut app = App {
-        model: DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0, 500, 20.0, 2.0),
+        model: DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0),
         fcn: fcn,
         goal: Goal::new(600.0, 325.0),
         time: 0,

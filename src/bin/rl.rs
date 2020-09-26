@@ -12,7 +12,7 @@ pub fn reward(fcn: &FCN, params: &Array1<f32>, num_episodes: usize) -> f32 {
     let mut total_reward = 0.0;
     for _ in 0..num_episodes {
         let mut episode_reward = 0.0;
-        let mut model = DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0, 0, 20.0, 2.0);
+        let mut model = DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0);
         let goal = Goal::new(500.0, 500.0);
         let (goal_x, goal_y) = goal.coordinates();
 
@@ -108,11 +108,6 @@ impl event::EventHandler for App {
     ) {
         match keycode {
             KeyCode::Escape => event::quit(ctx),
-            KeyCode::S => self.model.set_control(0.0, 0.0),
-            KeyCode::Up => self.model.increment_control(2.0, 0.0),
-            KeyCode::Down => self.model.increment_control(-2.0, 0.0),
-            KeyCode::Left => self.model.increment_control(0.0, -0.05),
-            KeyCode::Right => self.model.increment_control(0.0, 0.05),
             _ => (),
         }
     }
@@ -127,11 +122,13 @@ fn main() {
         (2, Activation::Linear),
     ]);
     println!("{}", fcn);
+
     let mut ceo = CEO::default();
     ceo.n_iter = 700;
     ceo.batch_size = 100;
     ceo.num_evalation_samples = 1;
     println!("{:?}", ceo);
+
     let _th_std = ceo.optimize(&mut fcn, &reward).unwrap();
 
     let now = chrono::offset::Local::now();
@@ -143,7 +140,7 @@ fn main() {
     .unwrap();
 
     let ref mut app = App {
-        model: DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0, 500, 20.0, 2.0),
+        model: DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0),
         fcn: fcn,
         goal: Goal::new(500.0, 500.0),
         time: 0,

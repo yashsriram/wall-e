@@ -47,12 +47,15 @@ mod trail {
     }
 }
 
-fn clamp(v: f32, max_abs: f32) -> f32 {
-    return if v.abs() > max_abs {
-        max_abs * v.signum()
-    } else {
-        v
-    };
+fn clamp(v: f32, min_max: (f32, f32)) -> f32 {
+    let (min, max) = min_max;
+    if v < min {
+        return min;
+    }
+    if v > max {
+        return max;
+    }
+    v
 }
 
 pub struct DiffDriveModel {
@@ -63,23 +66,23 @@ pub struct DiffDriveModel {
     v: f32,
     w: f32,
     trail: Trail,
-    v_max_abs: f32,
-    w_max_abs: f32,
 }
 
 impl DiffDriveModel {
-    pub fn spawn(
-        x: f32,
-        y: f32,
-        or_in_rad: f32,
-        radius: f32,
-        trail_limit: usize,
-        v_max_abs: f32,
-        w_max_abs: f32,
-    ) -> DiffDriveModel {
-        assert!(v_max_abs > 0.0);
-        assert!(w_max_abs > 0.0);
-        let mut trail = Trail::new(trail_limit);
+    const V_BOUNDS: (f32, f32) = (0.0, 20.0);
+    const W_BOUNDS: (f32, f32) = (-2.0, 2.0);
+    const TRIAL_LENGTH: usize = 500;
+
+    pub fn spawn(x: f32, y: f32, or_in_rad: f32, radius: f32) -> DiffDriveModel {
+        assert!(
+            DiffDriveModel::V_BOUNDS.0 < DiffDriveModel::V_BOUNDS.1,
+            "Bad linear velocity bounds."
+        );
+        assert!(
+            DiffDriveModel::W_BOUNDS.0 < DiffDriveModel::W_BOUNDS.1,
+            "Bad angular velocity bounds."
+        );
+        let mut trail = Trail::new(DiffDriveModel::TRIAL_LENGTH);
         trail.add(x, y);
         DiffDriveModel {
             x: x,
@@ -89,8 +92,6 @@ impl DiffDriveModel {
             v: 0.0,
             w: 0.0,
             trail: trail,
-            v_max_abs: v_max_abs,
-            w_max_abs: w_max_abs,
         }
     }
 
@@ -140,12 +141,12 @@ impl DiffDriveModel {
     }
 
     pub fn increment_control(&mut self, dv: f32, dw: f32) {
-        self.v = clamp(self.v + dv, self.v_max_abs);
-        self.w = clamp(self.w + dw, self.w_max_abs);
+        self.v = clamp(self.v + dv, DiffDriveModel::V_BOUNDS);
+        self.w = clamp(self.w + dw, DiffDriveModel::W_BOUNDS);
     }
 
     pub fn set_control(&mut self, v: f32, w: f32) {
-        self.v = clamp(v, self.v_max_abs);
-        self.w = clamp(w, self.w_max_abs);
+        self.v = clamp(v, DiffDriveModel::V_BOUNDS);
+        self.w = clamp(w, DiffDriveModel::W_BOUNDS);
     }
 }
