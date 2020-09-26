@@ -13,7 +13,7 @@ pub fn reward(fcn: &FCN, params: &Array1<f32>, num_episodes: usize) -> f32 {
     for _ in 0..num_episodes {
         let mut episode_reward = 0.0;
         let mut model = DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0, 0, 20.0, 2.0);
-        let goal = Goal::new(500.0, 500.0, 5.0);
+        let goal = Goal::new(500.0, 500.0);
         let (goal_x, goal_y) = goal.coordinates();
 
         for _ in 0..400 {
@@ -36,15 +36,21 @@ pub fn reward(fcn: &FCN, params: &Array1<f32>, num_episodes: usize) -> f32 {
         let (v, w) = model.control();
         let dx = x - goal_x;
         let dy = y - goal_y;
-        let final_dist = dx * dx + dy * dy;
-        if final_dist < 30.0 {
+        let final_dist = (dx * dx + dy * dy).sqrt();
+        if final_dist < 6.0 * Goal::SLACK {
             episode_reward += 100.0
         }
-        if final_dist < 20.0 {
+        if final_dist < 4.0 * Goal::SLACK {
             episode_reward += 1000.0
         }
-        if final_dist < 10.0 && v.abs() < 5.0 {
-            episode_reward += 10000.0;
+        if final_dist < 2.0 * Goal::SLACK {
+            episode_reward += 2000.0;
+            if v.abs() < 5.0 {
+                episode_reward += 10000.0;
+            }
+            if w.abs() < 5.0 {
+                episode_reward += 10000.0;
+            }
         }
         total_reward += episode_reward;
     }
@@ -124,7 +130,7 @@ fn main() {
     ]);
     println!("{}", fcn);
     let mut ceo = CEO::default();
-    ceo.n_iter = 500;
+    ceo.n_iter = 700;
     ceo.num_evalation_samples = 1;
     println!("{:?}", ceo);
     let _th_std = ceo.optimize(&mut fcn, &reward).unwrap();
@@ -140,7 +146,7 @@ fn main() {
     let ref mut app = App {
         model: DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0, 500, 20.0, 2.0),
         fcn: fcn,
-        goal: Goal::new(500.0, 500.0, 5.0),
+        goal: Goal::new(500.0, 500.0),
         time: 0,
         sim_time: 400,
     };

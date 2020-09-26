@@ -52,7 +52,7 @@ impl event::EventHandler for App {
 pub fn main() -> ggez::GameResult {
     let ref mut app = App {
         model: DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0, 500, 40.0, 5.0),
-        goal: Goal::new(600.0, 325.0, 5.0),
+        goal: Goal::new(600.0, 325.0),
     };
     let mut conf = conf::Conf::new();
     conf.window_mode.width = 650.0;

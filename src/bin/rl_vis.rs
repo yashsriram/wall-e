@@ -82,7 +82,7 @@ pub fn main() -> ggez::GameResult {
     let ref mut app = App {
         model: DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0, 500, 20.0, 2.0),
         fcn: fcn,
-        goal: Goal::new(600.0, 325.0, 5.0),
+        goal: Goal::new(600.0, 325.0),
         time: 0,
         sim_time: 400,
     };

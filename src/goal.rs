@@ -4,16 +4,13 @@ use ggez::*;
 pub struct Goal {
     x: f32,
     y: f32,
-    slack: f32,
 }
 
 impl Goal {
-    pub fn new(x: f32, y: f32, slack: f32) -> Goal {
-        Goal {
-            x: x,
-            y: y,
-            slack: slack,
-        }
+    pub const SLACK: f32 = 5.0;
+
+    pub fn new(x: f32, y: f32) -> Goal {
+        Goal { x: x, y: y }
     }
 
     pub fn coordinates(&self) -> (f32, f32) {
@@ -25,7 +22,7 @@ impl Goal {
             ctx,
             graphics::DrawMode::fill(),
             Point2::new(self.x, self.y),
-            self.slack,
+            Goal::SLACK,
             0.5,
             graphics::Color::from((0.0, 1.0, 0.0)),
         )?;
