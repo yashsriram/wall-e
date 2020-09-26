@@ -98,11 +98,11 @@ impl DiffDriveModel {
         self.x += self.v * self.or_in_rad.cos() * dt;
         self.y += self.v * self.or_in_rad.sin() * dt;
         self.or_in_rad += self.w * dt;
-
+        self.trail.add(self.x, self.y);
         Ok(())
     }
 
-    pub fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
+    pub fn draw(&self, ctx: &mut ggez::Context) -> ggez::GameResult {
         let circle = graphics::Mesh::new_circle(
             ctx,
             graphics::DrawMode::fill(),
@@ -127,7 +127,6 @@ impl DiffDriveModel {
         )?;
         graphics::draw(ctx, &line, (Point2::new(0.0, 0.0),))?;
 
-        self.trail.add(self.x, self.y);
         self.trail.draw(ctx)?;
         Ok(())
     }

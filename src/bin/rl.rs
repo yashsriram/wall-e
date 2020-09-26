@@ -62,7 +62,6 @@ struct App {
     fcn: FCN,
     goal: Goal,
     time: usize,
-    sim_time: usize,
 }
 
 impl event::EventHandler for App {
@@ -72,12 +71,11 @@ impl event::EventHandler for App {
         let control = self.fcn.at(&arr1(&[x, y, or_in_rad, goal_x, goal_y]));
         let (v, w) = (control[[0]], control[[1]]);
         self.model.set_control(v, w);
-        self.model.update(0.1)?;
-
-        if self.time > self.sim_time {
-            return Err(ggez::GameError::ConfigError("Simulation done!".to_owned()));
+        if ((x - goal_x).powf(2.0) + (y - goal_y).powf(2.0)).sqrt() < Goal::SLACK {
+        } else {
+            self.model.update(0.1)?;
+            self.time += 1;
         }
-        self.time += 1;
         Ok(())
     }
 
@@ -131,6 +129,7 @@ fn main() {
     println!("{}", fcn);
     let mut ceo = CEO::default();
     ceo.n_iter = 700;
+    ceo.batch_size = 100;
     ceo.num_evalation_samples = 1;
     println!("{:?}", ceo);
     let _th_std = ceo.optimize(&mut fcn, &reward).unwrap();
@@ -148,7 +147,6 @@ fn main() {
         fcn: fcn,
         goal: Goal::new(500.0, 500.0),
         time: 0,
-        sim_time: 400,
     };
     let mut conf = conf::Conf::new();
     conf.window_mode.width = 650.0;
