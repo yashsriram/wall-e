@@ -13,6 +13,7 @@ pub fn reward(fcn: &FCN, params: &Array1<f32>, num_episodes: usize) -> f32 {
     for _ in 0..num_episodes {
         let mut episode_reward = 0.0;
         let mut model = DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0);
+        // let mut model = DiffDriveModel::spawn_randomly((0.0, 650.0), (0.0, 650.0), 15.0);
         let goal = Goal::new(500.0, 500.0);
         let (goal_x, goal_y) = goal.coordinates();
 

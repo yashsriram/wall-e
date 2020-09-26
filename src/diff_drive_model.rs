@@ -1,5 +1,6 @@
 use ggez::nalgebra::Point2;
 use ggez::*;
+use rand::Rng;
 use trail::Trail;
 
 mod trail {
@@ -74,20 +75,33 @@ impl DiffDriveModel {
     const TRIAL_LENGTH: usize = 500;
 
     pub fn spawn(x: f32, y: f32, or_in_rad: f32, radius: f32) -> DiffDriveModel {
-        assert!(
-            DiffDriveModel::V_BOUNDS.0 < DiffDriveModel::V_BOUNDS.1,
-            "Bad linear velocity bounds."
-        );
-        assert!(
-            DiffDriveModel::W_BOUNDS.0 < DiffDriveModel::W_BOUNDS.1,
-            "Bad angular velocity bounds."
-        );
         let mut trail = Trail::new(DiffDriveModel::TRIAL_LENGTH);
         trail.add(x, y);
         DiffDriveModel {
             x: x,
             y: y,
             or_in_rad: or_in_rad,
+            radius: radius,
+            v: 0.0,
+            w: 0.0,
+            trail: trail,
+        }
+    }
+
+    pub fn spawn_randomly(
+        x_bounds: (f32, f32),
+        y_bounds: (f32, f32),
+        radius: f32,
+    ) -> DiffDriveModel {
+        let mut rng = rand::thread_rng();
+        let x = x_bounds.0 + (x_bounds.1 - x_bounds.0) * rng.gen::<f32>();
+        let y = y_bounds.0 + (y_bounds.1 - y_bounds.0) * rng.gen::<f32>();
+        let mut trail = Trail::new(DiffDriveModel::TRIAL_LENGTH);
+        trail.add(x, y);
+        DiffDriveModel {
+            x: x,
+            y: y,
+            or_in_rad: rng.gen::<f32>() * std::f32::consts::PI,
             radius: radius,
             v: 0.0,
             w: 0.0,
