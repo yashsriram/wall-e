@@ -68,7 +68,7 @@ pub struct DiffDriveModel {
 }
 
 impl DiffDriveModel {
-    pub fn new(
+    pub fn spawn(
         x: f32,
         y: f32,
         or_in_rad: f32,
@@ -140,16 +140,8 @@ impl DiffDriveModel {
         (self.x, self.y, self.or_in_rad)
     }
 
-    pub fn stop(&mut self) {
-        self.v = 0.0;
-        self.w = 0.0;
-    }
-
-    pub fn increment_v(&mut self, dv: f32) {
+    pub fn increment_control(&mut self, dv: f32, dw: f32) {
         self.v = clamp(self.v + dv, self.v_max_abs);
-    }
-
-    pub fn increment_w(&mut self, dw: f32) {
         self.w = clamp(self.w + dw, self.w_max_abs);
     }
 

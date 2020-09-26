@@ -12,7 +12,7 @@ pub fn reward(fcn: &FCN, params: &Array1<f32>, num_episodes: usize) -> f32 {
     let mut total_reward = 0.0;
     for _ in 0..num_episodes {
         let mut episode_reward = 0.0;
-        let mut model = DiffDriveModel::new(325.0, 325.0, 0.0, 15.0, 0, 20.0, 2.0);
+        let mut model = DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0, 0, 20.0, 2.0);
         let goal = Goal::new(500.0, 500.0, 5.0);
         let (goal_x, goal_y) = goal.coordinates();
 
@@ -104,11 +104,11 @@ impl event::EventHandler for App {
     ) {
         match keycode {
             KeyCode::Escape => event::quit(ctx),
-            KeyCode::S => self.model.stop(),
-            KeyCode::Up => self.model.increment_v(2.0),
-            KeyCode::Down => self.model.increment_v(-2.0),
-            KeyCode::Left => self.model.increment_w(-0.05),
-            KeyCode::Right => self.model.increment_w(0.05),
+            KeyCode::S => self.model.set_control(0.0, 0.0),
+            KeyCode::Up => self.model.increment_control(2.0, 0.0),
+            KeyCode::Down => self.model.increment_control(-2.0, 0.0),
+            KeyCode::Left => self.model.increment_control(0.0, -0.05),
+            KeyCode::Right => self.model.increment_control(0.0, 0.05),
             _ => (),
         }
     }
@@ -138,7 +138,7 @@ fn main() {
     .unwrap();
 
     let ref mut app = App {
-        model: DiffDriveModel::new(325.0, 325.0, 0.0, 15.0, 500, 20.0, 2.0),
+        model: DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0, 500, 20.0, 2.0),
         fcn: fcn,
         goal: Goal::new(500.0, 500.0, 5.0),
         time: 0,

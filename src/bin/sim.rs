@@ -6,23 +6,23 @@ use wall_e::diff_drive_model::DiffDriveModel;
 use wall_e::goal::Goal;
 
 struct App {
-    agent: DiffDriveModel,
+    model: DiffDriveModel,
     goal: Goal,
 }
 
 impl event::EventHandler for App {
     fn update(&mut self, _ctx: &mut ggez::Context) -> ggez::GameResult {
-        self.agent.update(0.1)?;
+        self.model.update(0.1)?;
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
         graphics::clear(ctx, [0.0, 0.0, 0.0, 1.0].into());
 
-        self.agent.draw(ctx)?;
+        self.model.draw(ctx)?;
         self.goal.draw(ctx)?;
 
-        let (v, w) = self.agent.control();
+        let (v, w) = self.model.control();
         graphics::set_window_title(
             ctx,
             &format!("fps={:.2}, v={:.2}, w={:.2}", timer::fps(ctx), v, w),
@@ -39,11 +39,11 @@ impl event::EventHandler for App {
     ) {
         match keycode {
             KeyCode::Escape => event::quit(ctx),
-            KeyCode::S => self.agent.stop(),
-            KeyCode::Up => self.agent.increment_v(2.0),
-            KeyCode::Down => self.agent.increment_v(-2.0),
-            KeyCode::Left => self.agent.increment_w(-0.05),
-            KeyCode::Right => self.agent.increment_w(0.05),
+            KeyCode::S => self.model.set_control(0.0, 0.0),
+            KeyCode::Up => self.model.increment_control(2.0, 0.0),
+            KeyCode::Down => self.model.increment_control(-2.0, 0.0),
+            KeyCode::Left => self.model.increment_control(0.0, -0.05),
+            KeyCode::Right => self.model.increment_control(0.0, 0.05),
             _ => (),
         }
     }
@@ -51,7 +51,7 @@ impl event::EventHandler for App {
 
 pub fn main() -> ggez::GameResult {
     let ref mut app = App {
-        agent: DiffDriveModel::new(325.0, 325.0, 0.0, 15.0, 500, 40.0, 5.0),
+        model: DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0, 500, 40.0, 5.0),
         goal: Goal::new(600.0, 325.0, 5.0),
     };
     let mut conf = conf::Conf::new();

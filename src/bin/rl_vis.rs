@@ -63,11 +63,11 @@ impl event::EventHandler for App {
     ) {
         match keycode {
             KeyCode::Escape => event::quit(ctx),
-            KeyCode::S => self.model.stop(),
-            KeyCode::Up => self.model.increment_v(2.0),
-            KeyCode::Down => self.model.increment_v(-2.0),
-            KeyCode::Left => self.model.increment_w(-0.05),
-            KeyCode::Right => self.model.increment_w(0.05),
+            KeyCode::S => self.model.set_control(0.0, 0.0),
+            KeyCode::Up => self.model.increment_control(2.0, 0.0),
+            KeyCode::Down => self.model.increment_control(-2.0, 0.0),
+            KeyCode::Left => self.model.increment_control(0.0, -0.05),
+            KeyCode::Right => self.model.increment_control(0.0, 0.05),
             _ => (),
         }
     }
@@ -80,7 +80,7 @@ pub fn main() -> ggez::GameResult {
     let fcn: FCN = serde_json::from_reader(reader).unwrap();
 
     let ref mut app = App {
-        model: DiffDriveModel::new(325.0, 325.0, 0.0, 15.0, 500, 40.0, 5.0),
+        model: DiffDriveModel::spawn(325.0, 325.0, 0.0, 15.0, 500, 20.0, 2.0),
         fcn: fcn,
         goal: Goal::new(600.0, 325.0, 5.0),
         time: 0,
