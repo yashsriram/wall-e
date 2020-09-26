@@ -47,6 +47,14 @@ mod trail {
     }
 }
 
+fn clamp(v: f32, max_abs: f32) -> f32 {
+    return if v.abs() > max_abs {
+        max_abs * v.signum()
+    } else {
+        v
+    };
+}
+
 pub struct DiffDriveModel {
     x: f32,
     y: f32,
@@ -55,8 +63,8 @@ pub struct DiffDriveModel {
     v: f32,
     w: f32,
     trail: Trail,
-    v_bound: f32,
-    w_bound: f32,
+    v_max_abs: f32,
+    w_max_abs: f32,
 }
 
 impl DiffDriveModel {
@@ -66,11 +74,11 @@ impl DiffDriveModel {
         or_in_rad: f32,
         radius: f32,
         trail_limit: usize,
-        v_bound: f32,
-        w_bound: f32,
+        v_max_abs: f32,
+        w_max_abs: f32,
     ) -> DiffDriveModel {
-        assert!(v_bound > 0.0);
-        assert!(w_bound > 0.0);
+        assert!(v_max_abs > 0.0);
+        assert!(w_max_abs > 0.0);
         let mut trail = Trail::new(trail_limit);
         trail.add(x, y);
         DiffDriveModel {
@@ -81,8 +89,8 @@ impl DiffDriveModel {
             v: 0.0,
             w: 0.0,
             trail: trail,
-            v_bound: v_bound,
-            w_bound: w_bound,
+            v_max_abs: v_max_abs,
+            w_max_abs: w_max_abs,
         }
     }
 
@@ -138,23 +146,15 @@ impl DiffDriveModel {
     }
 
     pub fn increment_v(&mut self, dv: f32) {
-        if (self.v + dv).abs() < self.v_bound {
-            self.v += dv;
-        }
+        self.v = clamp(self.v + dv, self.v_max_abs);
     }
 
     pub fn increment_w(&mut self, dw: f32) {
-        if (self.w + dw).abs() < self.w_bound {
-            self.w += dw;
-        }
+        self.w = clamp(self.w + dw, self.w_max_abs);
     }
 
     pub fn set_control(&mut self, v: f32, w: f32) {
-        if self.v.abs() < self.v {
-            self.v = v;
-        }
-        if self.w.abs() < self.w {
-            self.w = w;
-        }
+        self.v = clamp(v, self.v_max_abs);
+        self.w = clamp(w, self.w_max_abs);
     }
 }

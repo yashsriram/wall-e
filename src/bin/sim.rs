@@ -1,11 +1,9 @@
 use ggez::input::keyboard::{KeyCode, KeyMods};
 use ggez::*;
 
-mod diff_drive_model;
-use diff_drive_model::DiffDriveModel;
-
-mod goal;
-use goal::Goal;
+extern crate wall_e;
+use wall_e::diff_drive_model::DiffDriveModel;
+use wall_e::goal::Goal;
 
 struct App {
     agent: DiffDriveModel,
@@ -14,9 +12,7 @@ struct App {
 
 impl event::EventHandler for App {
     fn update(&mut self, _ctx: &mut ggez::Context) -> ggez::GameResult {
-        for _ in 0..10 {
-            self.agent.update(0.01)?;
-        }
+        self.agent.update(0.1)?;
         Ok(())
     }
 

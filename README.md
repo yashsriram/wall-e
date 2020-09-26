@@ -1,15 +1,9 @@
 # wall\_e
 
 ## roadmap
-- Simulator.
-- Model
-    - [x] Interactive differential drive model.
-    - [ ] Constraints on controls.
-    - [ ] Wall boundaries.
-- Goal
-    - [ ] Position
-    - [ ] Orientation
-    - [ ] Should network determine stopping condition?
+- Coursera lectures
+    - [x] lesson 1 2D kinematic modelling
+    - [x] lesson 2 Kinematic bicycle model
 - Controller impl.
     - [x] Conv, Relu needed?
         - Probably not. Since for the input (x, y, th, xg, yg) probably there no local relations or sequential memory required.
@@ -35,9 +29,29 @@
     - Loss function.
         - [ ] Different loss functions.
         - [ ] Step level optimization vs Trajectory level optimization.
+        - [ ] Randomized start poses.
+        - [ ] Randomized goals.
     - Optimizor.
         - [x] CEO.
     - Scenarios
         - [ ] No obstacles.
         - [ ] Known static obstacles.
-- [ ] Report.
+    - Goal
+        - [ ] Position
+        - [ ] Orientation
+        - [ ] Should network determine stopping condition?
+    - Simulator
+        - [x] Interactive differential drive model.
+        - [x] Constraints on controls.
+        - [ ] Wall boundaries.
+- [ ] Report and demo.
+- Summaries.
+    - [x] LeCunn 2015 paper
+    - [ ] Hinton 2006 Paper
+    - [ ] Istvan Szita and Andras Lorincz (2006)
+    - [ ] the t-SNE webpage 1
+    - [ ] the t-SNE webpage 2
+
+- [ ] In-class activity 3 RL
+- [ ] In-class activity 2 Kinematic modelling
+- [ ] In-class activity 1 CEM fitting

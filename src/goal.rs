@@ -16,6 +16,10 @@ impl Goal {
         }
     }
 
+    pub fn coordinates(&self) -> (f32, f32) {
+        (self.x, self.y)
+    }
+
     pub fn draw(&self, ctx: &mut ggez::Context) -> ggez::GameResult {
         let circle = graphics::Mesh::new_circle(
             ctx,
