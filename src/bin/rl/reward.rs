@@ -106,8 +106,8 @@ impl Reward for DiffDriveReward {
             episode_reward += 100.0 * (-final_dist).exp();
             // Makes agent stop at the end of episode
             let (v, w) = model.control();
-            episode_reward += 100.0 * (-v.abs()).exp();
-            episode_reward += 100.0 * (-w.abs()).exp();
+            episode_reward += 100.0 * (-v.abs()).exp() * (-final_dist).exp();
+            episode_reward += 100.0 * (-w.abs()).exp() * (-final_dist).exp();
 
             cumulative_reward += episode_reward;
         }
