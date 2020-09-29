@@ -35,19 +35,19 @@ fn run() -> Experiment {
     let mut ceo = CEO::default();
     ceo.generations = 500;
     ceo.batch_size = 100;
-    ceo.num_evalation_samples = 3;
+    ceo.num_evalation_samples = 6;
     ceo.elite_frac = 0.25;
     ceo.initial_std = 2.0;
     ceo.noise_factor = 3.0;
 
     let reward = DiffDriveReward::new(
-        (300.0, 400.0),
-        (300.0, 400.0),
+        (100.0, 100.0),
+        (100.0, 100.0),
         (0.0, 6.28),
         10.0,
-        (150.0, 250.0),
-        (150.0, 250.0),
-        600,
+        (250.0, 450.0),
+        (250.0, 450.0),
+        500,
     );
 
     let _th_std = ceo.optimize(&mut fcn, &reward).unwrap();

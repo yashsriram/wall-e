@@ -74,7 +74,7 @@ impl Reward for DiffDriveReward {
             );
             // Start calculating reward
             let mut episode_reward = 0.0;
-            for _ in 0..self.num_episode_ticks {
+            for tick in 0..self.num_episode_ticks {
                 // Curr state
                 let (x, y, or_in_rad) = model.scaled_state();
                 // Control for curr state
@@ -92,7 +92,8 @@ impl Reward for DiffDriveReward {
                 };
                 let angular_deviation = ((x_hat - or_in_rad.cos()).powf(2.0)
                     + (y_hat - or_in_rad.sin()).powf(2.0))
-                .sqrt();
+                .sqrt()
+                    * (1.0 / (1.0 + tick as f32));
                 episode_reward -= angular_deviation;
                 // Removes rotational jitter
                 episode_reward -= w.abs();
