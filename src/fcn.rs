@@ -1,6 +1,6 @@
 use ndarray::prelude::*;
-// use ndarray_rand::rand_distr::Uniform;
-// use ndarray_rand::RandomExt;
+use ndarray_rand::rand_distr::Uniform;
+use ndarray_rand::RandomExt;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -45,8 +45,8 @@ impl FCN {
         };
         FCN {
             layers: layers,
-            params: Array::from_elem((num_params,), 0.01),
-            // Array::random(num_params, Uniform::new(0.0, 1.0)),
+            params: //Array::from_elem((num_params,), 0.01),
+            Array::random(num_params, Uniform::new(0.0, 1.0)),
         }
     }
 

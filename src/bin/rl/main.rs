@@ -35,15 +35,18 @@ fn run() -> Experiment {
     let mut ceo = CEO::default();
     ceo.generations = 500;
     ceo.batch_size = 100;
-    ceo.num_evalation_samples = 1;
+    ceo.num_evalation_samples = 3;
+    ceo.elite_frac = 0.25;
+    ceo.initial_std = 2.0;
+    ceo.noise_factor = 2.0;
 
     let reward = DiffDriveReward::new(
-        (250.0, 250.0),
-        (250.0, 250.0),
-        (0.0, 0.0),
-        10.0,
-        (300.0, 300.0),
         (100.0, 100.0),
+        (50.0, 50.0),
+        (0.0, 6.28),
+        10.0,
+        (400.0, 400.0),
+        (400.0, 400.0),
         600,
     );
 

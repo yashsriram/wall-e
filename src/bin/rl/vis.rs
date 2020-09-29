@@ -11,6 +11,7 @@ pub struct Visualizer {
     fcn: FCN,
     goal: Goal,
     time: usize,
+    is_paused: bool,
 }
 
 impl From<Experiment> for Visualizer {
@@ -27,21 +28,25 @@ impl From<Experiment> for Visualizer {
             fcn: ex.fcn,
             goal: goal,
             time: 0,
+            is_paused: false,
         }
     }
 }
 
 impl event::EventHandler for Visualizer {
     fn update(&mut self, _ctx: &mut ggez::Context) -> ggez::GameResult {
+        if self.is_paused {
+            return Ok(());
+        }
         let (x, y, or_in_rad) = self.model.scaled_state();
         let control = self.fcn.at(&arr1(&[x, y, or_in_rad]));
         let (v, w) = (control[[0]], control[[1]]);
-        self.model.set_control(0.0, w);
-        if (x * x + y * y).sqrt() < Goal::SLACK {
-        } else {
-            self.model.update(0.1)?;
-            self.time += 1;
-        }
+        self.model.set_control(v, w);
+        // if (x * x + y * y).sqrt() < Goal::SLACK {
+        // } else {
+        self.model.update(0.1)?;
+        self.time += 1;
+        // }
         Ok(())
     }
 
@@ -55,11 +60,11 @@ impl event::EventHandler for Visualizer {
         graphics::set_window_title(
             ctx,
             &format!(
-                "fps={:.2}, v={:.2}, w={:.2}, time={:?}",
+                "fps={:.2}, time={:?}, v={:.2}, w={:.2},",
                 timer::fps(ctx),
+                self.time,
                 v,
                 w,
-                self.time
             ),
         );
         graphics::present(ctx)
@@ -74,6 +79,9 @@ impl event::EventHandler for Visualizer {
     ) {
         match keycode {
             KeyCode::Escape => event::quit(ctx),
+            KeyCode::P => {
+                self.is_paused = !self.is_paused;
+            }
             _ => (),
         }
     }

@@ -73,7 +73,7 @@ pub struct DiffDriveModel {
 
 impl DiffDriveModel {
     const V_BOUNDS: (f32, f32) = (0.0, 20.0);
-    const W_BOUNDS: (f32, f32) = (-2.0, 2.0);
+    const W_BOUNDS: (f32, f32) = (-1.0, 1.0);
     const TRIAL_LENGTH: usize = 500;
 
     pub fn spawn_randomly(

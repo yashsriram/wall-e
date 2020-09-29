@@ -18,10 +18,8 @@
     - [x] Seperate bin crate for each network.
     - Speedup
         - [x] Parallelize.
-        - [ ] Maybe move generation logic inside model? Removes into shapes a lot that way.
     - [x] sin().
     - [x] exp().
-    - [ ] median().
 - Controller design.
     - Model.
         - [ ] Input design & normalization.
@@ -39,13 +37,11 @@
         - [ ] No obstacles.
         - [ ] Known static obstacles.
     - Goal
-        - [ ] Position
-        - [ ] Orientation
+        - [x] Position
         - [ ] Should network determine stopping condition?
     - Simulator
         - [x] Interactive differential drive model.
         - [x] Constraints on controls.
-        - [ ] Wall boundaries.
 - [ ] Report and demo.
 - Summaries.
     - [x] LeCunn 2015 paper
@@ -54,3 +50,9 @@
     - [ ] the t-SNE webpage 1
     - [ ] the t-SNE webpage 2
     - [ ] OpenAI spinning up
+
+- Future work
+    - [ ] Goal orientation
+    - [ ] Wall boundaries.
+    - [ ] Maybe move generation logic inside model? Removes into shapes a lot that way.
+    - [ ] median().
