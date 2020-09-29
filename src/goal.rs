@@ -1,5 +1,6 @@
 use ggez::nalgebra::Point2;
 use ggez::*;
+use rand::Rng;
 
 pub struct Goal {
     x: f32,
@@ -9,7 +10,10 @@ pub struct Goal {
 impl Goal {
     pub const SLACK: f32 = 5.0;
 
-    pub fn new(x: f32, y: f32) -> Goal {
+    pub fn in_region(x_bounds: (f32, f32), y_bounds: (f32, f32)) -> Goal {
+        let mut rng = rand::thread_rng();
+        let x = x_bounds.0 + (x_bounds.1 - x_bounds.0) * rng.gen::<f32>();
+        let y = y_bounds.0 + (y_bounds.1 - y_bounds.0) * rng.gen::<f32>();
         Goal { x: x, y: y }
     }
 

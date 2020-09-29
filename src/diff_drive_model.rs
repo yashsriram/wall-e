@@ -93,6 +93,7 @@ impl DiffDriveModel {
     pub fn spawn_randomly(
         x_bounds: (f32, f32),
         y_bounds: (f32, f32),
+        or_bounds: (f32, f32),
         radius: f32,
     ) -> DiffDriveModel {
         const_assert!(DiffDriveModel::V_BOUNDS.0 < DiffDriveModel::V_BOUNDS.1);
@@ -100,12 +101,13 @@ impl DiffDriveModel {
         let mut rng = rand::thread_rng();
         let x = x_bounds.0 + (x_bounds.1 - x_bounds.0) * rng.gen::<f32>();
         let y = y_bounds.0 + (y_bounds.1 - y_bounds.0) * rng.gen::<f32>();
+        let or = or_bounds.0 + (or_bounds.1 - or_bounds.0) * rng.gen::<f32>();
         let mut trail = Trail::new(DiffDriveModel::TRIAL_LENGTH);
         trail.add(x, y);
         DiffDriveModel {
             x: x,
             y: y,
-            or_in_rad: rng.gen::<f32>() * std::f32::consts::PI,
+            or_in_rad: or,
             radius: radius,
             v: 0.0,
             w: 0.0,

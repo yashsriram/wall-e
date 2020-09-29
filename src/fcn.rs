@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum Activation {
     Linear,
     LeakyReLu(f32),
@@ -12,6 +13,7 @@ pub enum Activation {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FCN {
     layers: Vec<(usize, Activation)>,
     params: Array1<f32>,

@@ -19,7 +19,6 @@
     - Speedup
         - [x] Parallelize.
         - [ ] Maybe move generation logic inside model? Removes into shapes a lot that way.
-        - [ ] Use 8 core machine for training.
     - [x] sin().
     - [x] exp().
     - [ ] median().
@@ -29,8 +28,8 @@
         - [ ] Param init design.
         - [ ] Output design.
         - [ ] Hidden layer design.
-    - Loss function.
-        - [ ] Different loss functions.
+    - Reward function.
+        - [ ] Different reward functions.
         - [ ] Step level optimization vs Trajectory level optimization.
         - [ ] Randomized start poses.
         - [ ] Randomized goals.
@@ -54,3 +53,4 @@
     - [ ] Istvan Szita and Andras Lorincz (2006)
     - [ ] the t-SNE webpage 1
     - [ ] the t-SNE webpage 2
+    - [ ] OpenAI spinning up

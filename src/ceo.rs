@@ -4,8 +4,14 @@ use ndarray::stack;
 use ndarray_rand::rand_distr::{NormalError, StandardNormal};
 use ndarray_rand::RandomExt;
 use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+pub trait Reward {
+    fn reward(&self, fcn: &FCN, params: &Array1<f32>, num_episodes: usize) -> f32;
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CEO {
     pub n_iter: usize,
     pub batch_size: usize,
@@ -29,10 +35,11 @@ impl Default for CEO {
 }
 
 impl CEO {
-    pub fn optimize<R>(&self, fcn: &mut FCN, rew: &R) -> Result<Array1<f32>, NormalError>
-    where
-        R: Fn(&FCN, &Array1<f32>, usize) -> f32 + std::marker::Sync,
-    {
+    pub fn optimize(
+        &self,
+        fcn: &mut FCN,
+        reward: &(dyn Reward + std::marker::Sync),
+    ) -> Result<Array1<f32>, NormalError> {
         let n_elite = (self.batch_size as f32 * self.elite_frac).round().floor() as usize;
         let mut noise_std = Array::from_elem((fcn.params().len(),), self.initial_std);
         for iter in 0..self.n_iter {
@@ -45,7 +52,7 @@ impl CEO {
                         let scaled_randn_noise = randn_noise * &noise_std;
                         let perturbed_params = scaled_randn_noise + fcn.params();
                         (
-                            rew(fcn, &perturbed_params, self.num_evalation_samples),
+                            reward.reward(fcn, &perturbed_params, self.num_evalation_samples),
                             perturbed_params,
                         )
                     })
@@ -75,7 +82,7 @@ impl CEO {
                 "iter={} mean_reward={:?} reward_with_current_th={:?}, th_std_mean={:?}",
                 iter + 1,
                 mean_reward,
-                rew(fcn, &fcn.params(), self.num_evalation_samples),
+                reward.reward(fcn, &fcn.params(), self.num_evalation_samples),
                 noise_std.mean(),
             );
         }
