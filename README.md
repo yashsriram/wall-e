@@ -4,6 +4,9 @@
 - Coursera lectures
     - [x] lesson 1 2D kinematic modelling
     - [x] lesson 2 Kinematic bicycle model
+- [x] In-class activity 1 CEM fitting
+- [x] In-class activity 2 Kinematic modelling
+- [x] In-class activity 3 RL
 - Controller impl.
     - [x] Conv, Relu needed?
         - Probably not. Since for the input (x, y, th, xg, yg) probably there no local relations or sequential memory required.
@@ -51,7 +54,3 @@
     - [ ] Istvan Szita and Andras Lorincz (2006)
     - [ ] the t-SNE webpage 1
     - [ ] the t-SNE webpage 2
-
-- [ ] In-class activity 3 RL
-- [ ] In-class activity 2 Kinematic modelling
-- [ ] In-class activity 1 CEM fitting
