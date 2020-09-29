@@ -2,21 +2,24 @@ use ndarray::prelude::*;
 
 extern crate wall_e;
 use rand::Rng;
-use wall_e::ceo::CEO;
+use wall_e::ceo::{Reward, CEO};
 use wall_e::fcn::*;
 
-pub fn reward(fcn: &FCN, params: &Array1<f32>, num_samples: usize) -> f32 {
-    let mut rng = rand::thread_rng();
-    let max_x = 6.28;
-    let cumulative_reward = (0..num_samples)
-        .map(|_| {
-            let x = rng.gen::<f32>() * max_x;
-            let y_true = x.sin();
-            let y_pred = fcn.at_with(&arr1(&[x]), &params)[0];
-            -(y_true - y_pred) * (y_true - y_pred)
-        })
-        .sum::<f32>();
-    cumulative_reward / num_samples as f32
+struct SinReward;
+impl Reward for SinReward {
+    fn reward(&self, fcn: &FCN, params: &Array1<f32>, num_samples: usize) -> f32 {
+        let mut rng = rand::thread_rng();
+        let max_x = 6.28;
+        let cumulative_reward = (0..num_samples)
+            .map(|_| {
+                let x = rng.gen::<f32>() * max_x;
+                let y_true = x.sin();
+                let y_pred = fcn.at_with(&arr1(&[x]), &params)[0];
+                -(y_true - y_pred) * (y_true - y_pred)
+            })
+            .sum::<f32>();
+        cumulative_reward / num_samples as f32
+    }
 }
 
 fn main() {
@@ -30,6 +33,7 @@ fn main() {
     println!("{}", fcn);
     let ceo = CEO::default();
     println!("{:?}", ceo);
+    let reward = SinReward;
     let _th_std = ceo.optimize(&mut fcn, &reward).unwrap();
 
     use gnuplot::*;
@@ -57,7 +61,7 @@ fn main() {
         .set_title(
             &format!(
                 "reward={}\nmodel={}\nceo={:?}\n",
-                reward(&fcn, &fcn.params(), ceo.num_evalation_samples),
+                reward.reward(&fcn, &fcn.params(), ceo.num_evalation_samples),
                 fcn,
                 ceo,
             ),
