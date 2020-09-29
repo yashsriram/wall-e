@@ -162,7 +162,7 @@ impl DiffDriveModel {
         (
             (self.goal.0 - self.x) / self.scale,
             (self.goal.1 - self.y) / self.scale,
-            self.or_in_rad % std::f32::consts::PI,
+            self.or_in_rad,
         )
     }
 

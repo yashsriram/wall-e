@@ -29,24 +29,29 @@ fn run() -> Experiment {
         (5, Activation::LeakyReLu(0.1)),
         (5, Activation::LeakyReLu(0.1)),
         (5, Activation::LeakyReLu(0.1)),
+        (5, Activation::LeakyReLu(0.1)),
         (2, Activation::Linear),
     ]);
 
     let mut ceo = CEO::default();
-    ceo.generations = 500;
+    ceo.generations = 1000;
     ceo.batch_size = 100;
     ceo.num_evalation_samples = 6;
     ceo.elite_frac = 0.25;
-    ceo.initial_std = 2.0;
+    ceo.initial_std = 3.0;
     ceo.noise_factor = 3.0;
 
     let reward = DiffDriveReward::new(
-        (100.0, 100.0),
-        (100.0, 100.0),
+        // (100.0, 100.0),
+        // (400.0, 400.0),
+        (20.0, 240.0),
+        (20.0, 240.0),
         (0.0, 6.28),
         10.0,
-        (250.0, 450.0),
-        (250.0, 450.0),
+        // (250.0, 480.0),
+        // (20.0, 250.0),
+        (260.0, 480.0),
+        (260.0, 480.0),
         500,
     );
 

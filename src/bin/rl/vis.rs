@@ -4,12 +4,11 @@ use ggez::nalgebra::Point2;
 use ggez::*;
 use ndarray::prelude::*;
 use wall_e::diff_drive_model::DiffDriveModel;
-use wall_e::fcn::*;
 use wall_e::goal::Goal;
 
 pub struct Visualizer {
+    exp: Experiment,
     model: DiffDriveModel,
-    fcn: FCN,
     goal: Goal,
     time: usize,
     is_paused: bool,
@@ -17,24 +16,49 @@ pub struct Visualizer {
     goal_bound_rect: graphics::Rect,
 }
 
+impl Visualizer {
+    pub fn restart(&mut self) {
+        // New goal
+        let goal = Goal::in_region(
+            self.exp.reward.goal_x_bounds(),
+            self.exp.reward.goal_y_bounds(),
+        );
+        // New agent
+        let model = DiffDriveModel::spawn_randomly(
+            self.exp.reward.start_x_bounds(),
+            self.exp.reward.start_y_bounds(),
+            self.exp.reward.start_or_bounds(),
+            self.exp.reward.radius(),
+            goal.coordinates(),
+        );
+        // Restart
+        self.goal = goal;
+        self.model = model;
+        self.time = 0;
+    }
+}
+
 impl From<Experiment> for Visualizer {
-    fn from(ex: Experiment) -> Visualizer {
-        let (xl, xh) = ex.reward.start_x_bounds();
-        let (yl, yh) = ex.reward.start_y_bounds();
+    fn from(exp: Experiment) -> Visualizer {
+        let (xl, xh) = exp.reward.start_x_bounds();
+        let (yl, yh) = exp.reward.start_y_bounds();
         let model_start_bound_rect = graphics::Rect::new(xl, yl, xh - xl, yh - yl);
-        let (xl, xh) = ex.reward.goal_x_bounds();
-        let (yl, yh) = ex.reward.goal_y_bounds();
+        let (xl, xh) = exp.reward.goal_x_bounds();
+        let (yl, yh) = exp.reward.goal_y_bounds();
         let goal_bound_rect = graphics::Rect::new(xl, yl, xh - xl, yh - yl);
-        let goal = Goal::in_region(ex.reward.goal_x_bounds(), ex.reward.goal_y_bounds());
+        // Sample goal
+        let goal = Goal::in_region(exp.reward.goal_x_bounds(), exp.reward.goal_y_bounds());
+        // Spawn agent
+        let model = DiffDriveModel::spawn_randomly(
+            exp.reward.start_x_bounds(),
+            exp.reward.start_y_bounds(),
+            exp.reward.start_or_bounds(),
+            exp.reward.radius(),
+            goal.coordinates(),
+        );
         Visualizer {
-            model: DiffDriveModel::spawn_randomly(
-                ex.reward.start_x_bounds(),
-                ex.reward.start_y_bounds(),
-                ex.reward.start_or_bounds(),
-                ex.reward.radius(),
-                goal.coordinates(),
-            ),
-            fcn: ex.fcn,
+            exp: exp,
+            model: model,
             goal: goal,
             time: 0,
             is_paused: false,
@@ -50,7 +74,7 @@ impl event::EventHandler for Visualizer {
             return Ok(());
         }
         let (x, y, or_in_rad) = self.model.scaled_state();
-        let control = self.fcn.at(&arr1(&[x, y, or_in_rad]));
+        let control = self.exp.fcn.at(&arr1(&[x, y, or_in_rad]));
         let (v, w) = (control[[0]], control[[1]]);
         self.model.set_control(v, w);
         self.model.update(0.1)?;
@@ -69,7 +93,6 @@ impl event::EventHandler for Visualizer {
             graphics::Color::from((1.0, 1.0, 1.0)),
         )?;
         graphics::draw(ctx, &model_start_bound_rect, (Point2::new(0.0, 0.0),))?;
-
         let goal_bound_rect = graphics::Mesh::new_rectangle(
             ctx,
             graphics::DrawMode::stroke(1.0),
@@ -107,6 +130,9 @@ impl event::EventHandler for Visualizer {
             KeyCode::Escape => event::quit(ctx),
             KeyCode::P => {
                 self.is_paused = !self.is_paused;
+            }
+            KeyCode::R => {
+                self.restart();
             }
             _ => (),
         }
