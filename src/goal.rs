@@ -9,8 +9,6 @@ pub struct Goal {
 }
 
 impl Goal {
-    pub const SLACK: f32 = 0.02;
-
     pub fn in_region(x_bounds: (f32, f32), y_bounds: (f32, f32)) -> Goal {
         let mut rng = rand::thread_rng();
         let x = x_bounds.0 + (x_bounds.1 - x_bounds.0) * rng.gen::<f32>();
@@ -27,8 +25,8 @@ impl Goal {
             ctx,
             graphics::DrawMode::fill(),
             Point2::new(self.x, self.y),
-            Goal::SLACK * 40.0,
-            0.5,
+            5.0,
+            0.1,
             graphics::Color::from((0.0, 1.0, 0.0)),
         )?;
         graphics::draw(ctx, &circle, (Point2::new(0.0, 0.0),))

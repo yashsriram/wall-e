@@ -127,7 +127,7 @@ impl DiffDriveModel {
             graphics::DrawMode::fill(),
             Point2::new(self.x, self.y),
             self.radius,
-            0.5,
+            0.1,
             graphics::WHITE,
         )?;
         graphics::draw(ctx, &circle, (Point2::new(0.0, 0.0),))?;

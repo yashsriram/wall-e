@@ -1,5 +1,6 @@
 use super::Experiment;
 use ggez::input::keyboard::{KeyCode, KeyMods};
+use ggez::nalgebra::Point2;
 use ggez::*;
 use ndarray::prelude::*;
 use wall_e::diff_drive_model::DiffDriveModel;
@@ -12,16 +13,24 @@ pub struct Visualizer {
     goal: Goal,
     time: usize,
     is_paused: bool,
+    model_start_bound_rect: graphics::Rect,
+    goal_bound_rect: graphics::Rect,
 }
 
 impl From<Experiment> for Visualizer {
     fn from(ex: Experiment) -> Visualizer {
+        let (xl, xh) = ex.reward.start_x_bounds();
+        let (yl, yh) = ex.reward.start_y_bounds();
+        let model_start_bound_rect = graphics::Rect::new(xl, yl, xh - xl, yh - yl);
+        let (xl, xh) = ex.reward.goal_x_bounds();
+        let (yl, yh) = ex.reward.goal_y_bounds();
+        let goal_bound_rect = graphics::Rect::new(xl, yl, xh - xl, yh - yl);
         let goal = Goal::in_region(ex.reward.goal_x_bounds(), ex.reward.goal_y_bounds());
         Visualizer {
             model: DiffDriveModel::spawn_randomly(
-                ex.reward.init_x_bounds(),
-                ex.reward.init_y_bounds(),
-                ex.reward.init_or_bounds(),
+                ex.reward.start_x_bounds(),
+                ex.reward.start_y_bounds(),
+                ex.reward.start_or_bounds(),
                 ex.reward.radius(),
                 goal.coordinates(),
             ),
@@ -29,6 +38,8 @@ impl From<Experiment> for Visualizer {
             goal: goal,
             time: 0,
             is_paused: false,
+            model_start_bound_rect: model_start_bound_rect,
+            goal_bound_rect: goal_bound_rect,
         }
     }
 }
@@ -42,18 +53,33 @@ impl event::EventHandler for Visualizer {
         let control = self.fcn.at(&arr1(&[x, y, or_in_rad]));
         let (v, w) = (control[[0]], control[[1]]);
         self.model.set_control(v, w);
-        // if (x * x + y * y).sqrt() < Goal::SLACK {
-        // } else {
         self.model.update(0.1)?;
         self.time += 1;
-        // }
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
         graphics::clear(ctx, [0.0, 0.0, 0.0, 1.0].into());
 
+        // Draw bounds
+        let model_start_bound_rect = graphics::Mesh::new_rectangle(
+            ctx,
+            graphics::DrawMode::stroke(1.0),
+            self.model_start_bound_rect,
+            graphics::Color::from((1.0, 1.0, 1.0)),
+        )?;
+        graphics::draw(ctx, &model_start_bound_rect, (Point2::new(0.0, 0.0),))?;
+
+        let goal_bound_rect = graphics::Mesh::new_rectangle(
+            ctx,
+            graphics::DrawMode::stroke(1.0),
+            self.goal_bound_rect,
+            graphics::Color::from((0.0, 1.0, 0.0)),
+        )?;
+        graphics::draw(ctx, &goal_bound_rect, (Point2::new(0.0, 0.0),))?;
+        // Draw model
         self.model.draw(ctx)?;
+        // Draw goal
         self.goal.draw(ctx)?;
 
         let (v, w) = self.model.control();

@@ -38,15 +38,15 @@ fn run() -> Experiment {
     ceo.num_evalation_samples = 3;
     ceo.elite_frac = 0.25;
     ceo.initial_std = 2.0;
-    ceo.noise_factor = 2.0;
+    ceo.noise_factor = 3.0;
 
     let reward = DiffDriveReward::new(
-        (100.0, 100.0),
-        (50.0, 50.0),
+        (300.0, 400.0),
+        (300.0, 400.0),
         (0.0, 6.28),
         10.0,
-        (400.0, 400.0),
-        (400.0, 400.0),
+        (150.0, 250.0),
+        (150.0, 250.0),
         600,
     );
 

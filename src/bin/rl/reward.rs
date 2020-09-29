@@ -8,9 +8,9 @@ use wall_e::goal::Goal;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DiffDriveReward {
-    init_x_bounds: (f32, f32),
-    init_y_bounds: (f32, f32),
-    init_or_bounds: (f32, f32),
+    start_x_bounds: (f32, f32),
+    start_y_bounds: (f32, f32),
+    start_or_bounds: (f32, f32),
     radius: f32,
     goal_x_bounds: (f32, f32),
     goal_y_bounds: (f32, f32),
@@ -19,32 +19,32 @@ pub struct DiffDriveReward {
 
 impl DiffDriveReward {
     pub fn new(
-        init_x_bounds: (f32, f32),
-        init_y_bounds: (f32, f32),
-        init_or_bounds: (f32, f32),
+        start_x_bounds: (f32, f32),
+        start_y_bounds: (f32, f32),
+        start_or_bounds: (f32, f32),
         radius: f32,
         goal_x_bounds: (f32, f32),
         goal_y_bounds: (f32, f32),
         num_episode_ticks: usize,
     ) -> DiffDriveReward {
         DiffDriveReward {
-            init_x_bounds: init_x_bounds,
-            init_y_bounds: init_y_bounds,
-            init_or_bounds: init_or_bounds,
+            start_x_bounds: start_x_bounds,
+            start_y_bounds: start_y_bounds,
+            start_or_bounds: start_or_bounds,
             radius: radius,
             goal_x_bounds: goal_x_bounds,
             goal_y_bounds: goal_y_bounds,
             num_episode_ticks: num_episode_ticks,
         }
     }
-    pub fn init_x_bounds(&self) -> (f32, f32) {
-        self.init_x_bounds
+    pub fn start_x_bounds(&self) -> (f32, f32) {
+        self.start_x_bounds
     }
-    pub fn init_y_bounds(&self) -> (f32, f32) {
-        self.init_y_bounds
+    pub fn start_y_bounds(&self) -> (f32, f32) {
+        self.start_y_bounds
     }
-    pub fn init_or_bounds(&self) -> (f32, f32) {
-        self.init_or_bounds
+    pub fn start_or_bounds(&self) -> (f32, f32) {
+        self.start_or_bounds
     }
     pub fn radius(&self) -> f32 {
         self.radius
@@ -66,9 +66,9 @@ impl Reward for DiffDriveReward {
                 Goal::in_region(self.goal_x_bounds, self.goal_y_bounds).coordinates();
             // Spawn agent
             let mut model = DiffDriveModel::spawn_randomly(
-                self.init_x_bounds,
-                self.init_y_bounds,
-                self.init_or_bounds,
+                self.start_x_bounds,
+                self.start_y_bounds,
+                self.start_or_bounds,
                 self.radius,
                 goal_coordinates,
             );
