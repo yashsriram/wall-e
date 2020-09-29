@@ -55,65 +55,70 @@ impl DiffDriveReward {
     pub fn goal_y_bounds(&self) -> (f32, f32) {
         self.goal_y_bounds
     }
-    pub fn num_episode_ticks(&self) -> usize {
-        self.num_episode_ticks
-    }
 }
 
 impl Reward for DiffDriveReward {
     fn reward(&self, fcn: &FCN, params: &Array1<f32>, num_episodes: usize) -> f32 {
-        let mut total_reward = 0.0;
+        let mut cumulative_reward = 0.0;
         for _ in 0..num_episodes {
-            let mut episode_reward = 0.0;
+            // Set goal
+            let goal_coordinates =
+                Goal::in_region(self.goal_x_bounds, self.goal_y_bounds).coordinates();
+            // Spawn agent
             let mut model = DiffDriveModel::spawn_randomly(
                 self.init_x_bounds,
                 self.init_y_bounds,
                 self.init_or_bounds,
                 self.radius,
+                goal_coordinates,
             );
-            let goal = Goal::in_region(self.goal_x_bounds, self.goal_y_bounds);
-            let (goal_x, goal_y) = goal.coordinates();
-
+            // Start calculating reward
+            let mut episode_reward = 0.0;
             for _ in 0..self.num_episode_ticks {
-                let (x, y, or_in_rad) = model.state();
-                let control = fcn.at_with(&arr1(&[x, y, or_in_rad, goal_x, goal_y]), params);
+                // Curr state
+                let (x, y, or_in_rad) = model.scaled_state();
+                // Control for curr state
+                let control = fcn.at_with(&arr1(&[x, y, or_in_rad]), params);
                 let (v, w) = (control[[0]], control[[1]]);
-                model.set_control(v, w);
+                // Apply control
+                model.set_control(0.0, w);
                 model.update(0.1).unwrap();
-                let (x, y, or_in_rad) = model.state();
-                let dx = x - goal_x;
-                let dy = y - goal_y;
-                let dist = (dx * dx + dy * dy).sqrt();
-                episode_reward -= dist;
-                let best_theta = dy.atan2(dx);
-                let curr_theta = or_in_rad % std::f32::consts::PI;
-                episode_reward -= (curr_theta - best_theta).abs() * 10.0;
+                // Next state
+                let (x, y, or_in_rad) = model.scaled_state();
+                let angular_deviation =
+                    ((x - or_in_rad.cos()).powf(2.0) + (y - or_in_rad.sin()).powf(2.0)).sqrt();
+                // let dist = (x * x + y * y).sqrt();
+                // episode_reward -= dist;
                 episode_reward -= w.abs();
+                episode_reward -= angular_deviation;
+                // println!("d {:?}", angular_deviation);
+                // println!("e {:?}", episode_reward);
             }
 
-            let (x, y, _or_in_rad) = model.state();
-            let (v, w) = model.control();
-            let dx = x - goal_x;
-            let dy = y - goal_y;
-            let final_dist = (dx * dx + dy * dy).sqrt();
-            if final_dist < 6.0 * Goal::SLACK {
-                episode_reward += 100.0
-            }
-            if final_dist < 4.0 * Goal::SLACK {
-                episode_reward += 1000.0
-            }
-            if final_dist < 2.0 * Goal::SLACK {
-                episode_reward += 2000.0;
-                if v.abs() < 5.0 {
-                    episode_reward += 10000.0;
-                }
-                if w.abs() < 5.0 {
-                    episode_reward += 10000.0;
-                }
-            }
-            total_reward += episode_reward;
+            // let (x, y, or_in_rad) = model.scaled_state(goal_coordinates);
+            // let final_dist = (x * x + y * y).sqrt();
+            // if final_dist < 6.0 * Goal::SLACK {
+            //     episode_reward += 100.0
+            // }
+            // if final_dist < 4.0 * Goal::SLACK {
+            //     episode_reward += 1000.0
+            // }
+
+            // let (v, w) = model.control();
+            // if final_dist < 2.0 * Goal::SLACK {
+            //     episode_reward += 2000.0;
+            //     if v.abs() < 5.0 {
+            //         episode_reward += 10000.0;
+            //     }
+            //     if w.abs() < 5.0 {
+            //         episode_reward += 10000.0;
+            //     }
+            // }
+
+            cumulative_reward += episode_reward;
         }
 
-        total_reward / num_episodes as f32
+        let average_reward = cumulative_reward / num_episodes as f32;
+        average_reward
     }
 }

@@ -2,13 +2,14 @@ use ggez::nalgebra::Point2;
 use ggez::*;
 use rand::Rng;
 
+#[derive(Debug)]
 pub struct Goal {
     x: f32,
     y: f32,
 }
 
 impl Goal {
-    pub const SLACK: f32 = 5.0;
+    pub const SLACK: f32 = 0.02;
 
     pub fn in_region(x_bounds: (f32, f32), y_bounds: (f32, f32)) -> Goal {
         let mut rng = rand::thread_rng();
@@ -26,7 +27,7 @@ impl Goal {
             ctx,
             graphics::DrawMode::fill(),
             Point2::new(self.x, self.y),
-            Goal::SLACK,
+            Goal::SLACK * 40.0,
             0.5,
             graphics::Color::from((0.0, 1.0, 0.0)),
         )?;

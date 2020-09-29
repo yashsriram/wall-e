@@ -25,28 +25,26 @@ impl Experiment {
 
 fn run() -> Experiment {
     let mut fcn = FCN::new(vec![
-        (5, Activation::Linear),
+        (3, Activation::Linear),
         (5, Activation::LeakyReLu(0.1)),
         (5, Activation::LeakyReLu(0.1)),
         (5, Activation::LeakyReLu(0.1)),
         (2, Activation::Linear),
     ]);
-    println!("{}", fcn);
 
     let mut ceo = CEO::default();
-    ceo.n_iter = 700;
+    ceo.generations = 500;
     ceo.batch_size = 100;
     ceo.num_evalation_samples = 1;
-    println!("{:?}", ceo);
 
     let reward = DiffDriveReward::new(
-        (20.0, 20.0),
-        (20.0, 20.0),
-        (0.0, 0.01),
+        (250.0, 250.0),
+        (250.0, 250.0),
+        (0.0, 0.0),
         10.0,
-        (400.0, 400.0),
-        (400.0, 400.0),
-        400,
+        (300.0, 300.0),
+        (100.0, 100.0),
+        600,
     );
 
     let _th_std = ceo.optimize(&mut fcn, &reward).unwrap();
@@ -88,6 +86,7 @@ fn main() {
         let exp: Experiment = serde_json::from_reader(reader).unwrap();
         exp
     };
+    println!("{:?}", exp);
     // Visualize
     let ref mut app = Visualizer::from(exp);
     let mut conf = conf::Conf::new();

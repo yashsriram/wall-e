@@ -13,7 +13,7 @@ pub trait Reward {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CEO {
-    pub n_iter: usize,
+    pub generations: usize,
     pub batch_size: usize,
     pub num_evalation_samples: usize,
     pub elite_frac: f32,
@@ -24,7 +24,7 @@ pub struct CEO {
 impl Default for CEO {
     fn default() -> CEO {
         CEO {
-            n_iter: 300,
+            generations: 300,
             batch_size: 50,
             num_evalation_samples: 300,
             elite_frac: 0.25,
@@ -42,7 +42,7 @@ impl CEO {
     ) -> Result<Array1<f32>, NormalError> {
         let n_elite = (self.batch_size as f32 * self.elite_frac).round().floor() as usize;
         let mut noise_std = Array::from_elem((fcn.params().len(),), self.initial_std);
-        for iter in 0..self.n_iter {
+        for generation in 0..self.generations {
             let (sorted_th_means, mean_reward) = {
                 let mut reward_th_mean_tuples = (0..self.batch_size)
                     .into_par_iter()
@@ -77,10 +77,10 @@ impl CEO {
                 .unwrap();
             fcn.set_params(elite_ths.mean_axis(Axis(0)).unwrap());
             noise_std = elite_ths.std_axis(Axis(0), 0.0);
-            noise_std += self.noise_factor / (iter + 1) as f32;
+            noise_std += self.noise_factor / (generation + 1) as f32;
             println!(
-                "iter={} mean_reward={:?} reward_with_current_th={:?}, th_std_mean={:?}",
-                iter + 1,
+                "generation={} mean_reward={:?} reward_with_current_th={:?}, th_std_mean={:?}",
+                generation + 1,
                 mean_reward,
                 reward.reward(fcn, &fcn.params(), self.num_evalation_samples),
                 noise_std.mean(),
