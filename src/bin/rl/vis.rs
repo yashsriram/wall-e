@@ -14,6 +14,7 @@ pub struct Visualizer {
     is_paused: bool,
     model_start_bound_rect: graphics::Rect,
     goal_bound_rect: graphics::Rect,
+    dt: f32,
 }
 
 impl Visualizer {
@@ -64,6 +65,7 @@ impl From<Experiment> for Visualizer {
             is_paused: false,
             model_start_bound_rect: model_start_bound_rect,
             goal_bound_rect: goal_bound_rect,
+            dt: 0.1,
         }
     }
 }
@@ -77,7 +79,7 @@ impl event::EventHandler for Visualizer {
         let control = self.exp.fcn.at(&arr1(&[x, y, or_in_rad]));
         let (v, w) = (control[[0]], control[[1]]);
         self.model.set_control(v, w);
-        self.model.update(0.1)?;
+        self.model.update(self.dt)?;
         self.time += 1;
         Ok(())
     }
@@ -109,9 +111,10 @@ impl event::EventHandler for Visualizer {
         graphics::set_window_title(
             ctx,
             &format!(
-                "fps={:.2}, time={:?}, v={:.2}, w={:.2},",
+                "fps={:.2}, time={:.4}, dt={:?}, v={:.2}, w={:.2},",
                 timer::fps(ctx),
                 self.time,
+                self.dt,
                 v,
                 w,
             ),
@@ -133,6 +136,12 @@ impl event::EventHandler for Visualizer {
             }
             KeyCode::R => {
                 self.restart();
+            }
+            KeyCode::PageUp => {
+                self.dt += 0.01;
+            }
+            KeyCode::PageDown => {
+                self.dt -= 0.01;
             }
             _ => (),
         }
