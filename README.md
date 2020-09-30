@@ -1,12 +1,12 @@
 # wall\_e
 
 ## roadmap
-- Coursera lectures
-    - [x] lesson 1 2D kinematic modelling
-    - [x] lesson 2 Kinematic bicycle model
+- [x] Coursera lesson 1 2D kinematic modelling
+- [x] Coursera lesson 2 Kinematic bicycle model
 - [x] In-class activity 1 CEM fitting
 - [x] In-class activity 2 Kinematic modelling
 - [x] In-class activity 3 RL
+
 - Controller impl.
     - [x] Conv, Relu needed?
         - Probably not. Since for the input (x, y, th, xg, yg) probably there no local relations or sequential memory required.
@@ -20,29 +20,29 @@
         - [x] Parallelize.
     - [x] sin().
     - [x] exp().
+
 - Controller design.
     - Model.
-        - [ ] Input design & normalization.
-        - [ ] Param init design.
-        - [ ] Output design.
-        - [ ] Hidden layer design.
+        - [x] Input design & normalization.
+        - [x] Hidden layer design.
+        - [x] Output design.
+        - [x] Param init design.
     - Reward function.
-        - [ ] Different reward functions.
-        - [ ] Step level optimization vs Trajectory level optimization.
-        - [ ] Randomized start poses.
-        - [ ] Randomized goals.
+        - [x] Different reward functions.
+        - [x] Randomized start poses.
+        - [x] Randomized goals.
     - Optimizor.
         - [x] CEO.
     - Scenarios
-        - [ ] No obstacles.
-        - [ ] Known static obstacles.
+        - [x] No obstacles.
     - Goal
         - [x] Position
-        - [ ] Should network determine stopping condition?
+        - [x] Should network determine stopping condition?
     - Simulator
         - [x] Interactive differential drive model.
         - [x] Constraints on controls.
-- [ ] Report and demo.
+- [x] Report and demo.
+
 - Summaries.
     - [x] LeCunn 2015 paper
     - [ ] Hinton 2006 Paper
@@ -56,3 +56,5 @@
     - [ ] Wall boundaries.
     - [ ] Maybe move generation logic inside model? Removes into shapes a lot that way.
     - [ ] median().
+    - [ ] Step level optimization vs Trajectory level optimization.
+    - [ ] Known static obstacles.
