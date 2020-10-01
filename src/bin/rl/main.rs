@@ -100,7 +100,7 @@ fn main() {
     let mut conf = conf::Conf::new();
     conf.window_mode.width = Experiment::VIS_WIDTH;
     conf.window_mode.height = Experiment::VIS_HEIGHT;
-    let (ref mut ctx, ref mut event_loop) = ContextBuilder::new("wall_e", "buggedbit")
+    let (ref mut ctx, ref mut event_loop) = ContextBuilder::new("wall-e", "buggedbit")
         .conf(conf)
         .build()
         .unwrap();

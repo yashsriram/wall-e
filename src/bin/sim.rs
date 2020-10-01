@@ -57,7 +57,7 @@ pub fn main() -> ggez::GameResult {
     let mut conf = conf::Conf::new();
     conf.window_mode.width = 650.0;
     conf.window_mode.height = 650.0;
-    let (ref mut ctx, ref mut event_loop) = ContextBuilder::new("wall_e", "buggedbit")
+    let (ref mut ctx, ref mut event_loop) = ContextBuilder::new("wall-e", "buggedbit")
         .conf(conf)
         .build()?;
     event::run(ctx, event_loop, app)

@@ -1,4 +1,4 @@
-# wall\_e
+# wall-e
 
 ## roadmap
 - [x] Coursera lesson 1 2D kinematic modelling
@@ -45,13 +45,10 @@
 
 - Summaries.
     - [x] LeCunn 2015 paper
-    - [ ] Hinton 2006 Paper
-    - [ ] Istvan Szita and Andras Lorincz (2006)
-    - [ ] the t-SNE webpage 1
-    - [ ] the t-SNE webpage 2
-    - [ ] OpenAI spinning up
 
 - Future work
+    - [ ] Hinton 2006 Paper
+    - [ ] Istvan Szita and Andras Lorincz (2006)
     - [ ] Goal orientation
     - [ ] Wall boundaries.
     - [ ] Maybe move generation logic inside model? Removes into shapes a lot that way.

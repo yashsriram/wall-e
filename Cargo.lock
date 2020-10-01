@@ -2254,7 +2254,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "wall_e"
+name = "wall-e"
 version = "0.1.0"
 dependencies = [
  "chrono",
