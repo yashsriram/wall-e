@@ -1,18 +1,54 @@
 # wall-e
 
+## description
+- A neural-network controller for a differential-drive agent to reach a goal.
+- A simple fully-connected network with ReLu activations is used as controller.
+- Noisy cross-entroy optimizer (ceo), a gradient-less optimization method is used for network optimization.
+
+## code
+- The code is written in stable `rust`.
+- A library named `wall-e` is implemented, which is used in the bin crates.
+- The bin crates are the following
+    - sin: fits sin function using ceo optmized neural-network.
+    - exp: fits exp function using ceo optmized neural-network.
+    - sim: provides a simulator for controlling differential-drive agent manually.
+    - rl:  optimizes a neural-network controller for a differential-drive agent to reach a goal.
+- The design of network, reward function and agent can be found in `report.pdf`.
+
+## documentation
+- The documentation of the code is itself.
+
 ## usage
-- Install rust stable toolchain and cargo.
-- Update params as needed in `src/bin/rl/main.rs`.
-- Use `cargo run --release --bin rl` to run training, save experiment and visualize it.
+- Install stable rust and cargo.
+- Use `cargo run --release --bin rl sin` to fit a sin function.
+- Use `cargo run --release --bin rl exp` to fit an exp function.
+- Use `cargo run --release --bin rl sim` to start a simulator and control a differential-drive agent manually.
+    - `up down` increases or decrease linesr speed.
+    - `left right` change angular velocity.
+    - `s` stop.
+- Use `cargo run --release --bin rl` to run optimization, save the experiment and visualize it.
+    - The saved file can be tweaked by hand to change the setting.
+    - Ex. Spawn regions of agent and goal can be changed.
 - Use `cargo run --release --bin rl <path-to-json>` to visualize experiment.
+    - `r` respawn agent and goal.
+    - `p` toggle play/pause simulator.
+    - `pageup pagedown` change `dt` of simulation.
+
+## demonstration
+
+- Sin fitting.
+
+![](./github/sin.png)
+
+- Exp fitting.
+
+![](./github/exp.png)
+
+- Neural-network controller for differential-drive agent.
+
+[![](http://img.youtube.com/vi/4jXgBfBq2UI/0.jpg)](http://www.youtube.com/watch?v=4jXgBfBq2UI)
 
 ## roadmap
-- [x] Coursera lesson 1 2D kinematic modelling
-- [x] Coursera lesson 2 Kinematic bicycle model
-- [x] In-class activity 1 CEM fitting
-- [x] In-class activity 2 Kinematic modelling
-- [x] In-class activity 3 RL
-
 - Controller impl.
     - [x] Conv, Relu needed?
         - Probably not. Since for the input (x, y, th, xg, yg) probably there no local relations or sequential memory required.
@@ -26,7 +62,6 @@
         - [x] Parallelize.
     - [x] sin().
     - [x] exp().
-
 - Controller design.
     - Model.
         - [x] Input design & normalization.
@@ -49,12 +84,7 @@
         - [x] Constraints on controls.
 - [x] Report and demo.
 
-- Summaries.
-    - [x] LeCunn 2015 paper
-
 - Future work
-    - [ ] Hinton 2006 Paper
-    - [ ] Istvan Szita and Andras Lorincz (2006)
     - [ ] Goal orientation
     - [ ] Wall boundaries.
     - [ ] Maybe move generation logic inside model? Removes into shapes a lot that way.
