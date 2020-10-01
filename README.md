@@ -1,5 +1,11 @@
 # wall-e
 
+## usage
+- Install rust stable toolchain and cargo.
+- Update params as needed in `src/bin/rl/main.rs`.
+- Use `cargo run --release --bin rl` to run training, save experiment and visualize it.
+- Use `cargo run --release --bin rl <path-to-json>` to visualize experiment.
+
 ## roadmap
 - [x] Coursera lesson 1 2D kinematic modelling
 - [x] Coursera lesson 2 Kinematic bicycle model
