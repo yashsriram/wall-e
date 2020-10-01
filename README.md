@@ -44,7 +44,7 @@
 
 ![](./github/exp.png)
 
-- Neural-network controller for differential-drive agent.
+- The following video illustrates a few neural-network controlled differential-drive agents.
 
 [![](http://img.youtube.com/vi/4jXgBfBq2UI/0.jpg)](http://www.youtube.com/watch?v=4jXgBfBq2UI)
 
