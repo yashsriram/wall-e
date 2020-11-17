@@ -13,7 +13,8 @@
     - exp: fits exp function using ceo optmized neural-network.
     - sim: provides a simulator for controlling differential-drive agent manually.
     - rl:  optimizes a neural-network controller for a differential-drive agent to reach a goal.
-- The design of network, reward function and agent can be found in `report.pdf`.
+- The design of network, reward function and agent can be found in `report/report.tex`.
+    - To compile it to pdf, use `latexmk -pdf report.tex`.
 
 ## documentation
 - The documentation of the code is itself.
